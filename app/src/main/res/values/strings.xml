@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Zen Launcher</string>
+    <string name="app_name">N.eco launcher</string>
     <string name="search_hint">Поиск приложений...</string>
     <string name="no_apps_found">Приложения не найдены</string>
     <string name="favorites_title">Избранное</string>

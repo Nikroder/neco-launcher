@@ -68,7 +68,7 @@ function onOpenSettings() {
         <span>ВСЕ ПРИЛОЖЕНИЯ</span>
       </div>
       <div class="btn-settings bounce-tap" @click="onOpenSettings">
-        ZEN // PREFS
+        N.ECO // PREFS
       </div>
     </div>
   </div>

@@ -31,7 +31,7 @@ pub async fn check_github_update(
     repo: String,
 ) -> Result<UpdateCheckResponse, String> {
     let client = reqwest::Client::builder()
-        .user_agent("ZenLauncher-AutoUpdater")
+        .user_agent("NecoLauncher-AutoUpdater")
         .build()
         .map_err(|e| e.to_string())?;
 

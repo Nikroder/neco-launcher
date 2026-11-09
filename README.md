@@ -1,6 +1,6 @@
-# Zen Minimalist Launcher (Vue 3 + Rust / Tauri Mobile)
+# N.eco Launcher (Vue 3 + Rust / Tauri Mobile)
 
-> **Минималистичный Android-лаунчер на стеке VUE 3 + RUST с эстетикой Nothing OS, медитативным звуковым профилем (Zen), динамическим медиа-плеером, поддержкой Режимов Samsung, зарядом подключенных устройств и автообновлением через GitHub Releases.**
+> **N.eco launcher — Минималистичный Android-лаунчер на стеке VUE 3 + RUST с эстетикой Nothing OS, медитативным звуковым профилем (Zen), динамическим медиа-плеером, поддержкой Режимов Samsung, зарядом подключенных устройств и автообновлением через GitHub Releases.**
 
 ---
 
@@ -25,10 +25,10 @@
 
 Репозиторий уже инициализирован локально на ветке `main`. Чтобы отправить его на GitHub:
 
-1. Создайте новый пустой репозиторий на [GitHub](https://github.com/new) (например, `zen-launcher`).
+1. Создайте новый пустой репозиторий на [GitHub](https://github.com/new) (например, `neco-launcher`).
 2. В терминале выполните:
 ```bash
-git remote add origin https://github.com/<ВАШ_GITHUB_ЛОГИН>/zen-launcher.git
+git remote add origin https://github.com/<ВАШ_GITHUB_ЛОГИН>/neco-launcher.git
 git push -u origin main
 ```
 
@@ -49,14 +49,14 @@ git push origin v1.0.1
 GitHub Actions автоматически:
 1. Соберет APK в окружении Ubuntu + Android SDK/NDK.
 2. Создаст официальный **GitHub Release** с тегом `v1.0.1`.
-3. Прикрепит файл `zen-launcher-v1.0.1.apk` к релизу.
+3. Прикрепит файл `neco-launcher-v1.0.1.apk` к релизу.
 
 ### 3. Как работает автообновление на смартфоне
 * При запуске лаунчер опрашивает GitHub API: `https://api.github.com/repos/<owner>/<repo>/releases/latest`.
 * Если обнаружена новая версия (например, `v1.0.1` при текущей `v1.0.0`):
   - На главном экране лаунчера всплывает баннер **«ДОСТУПНА ВЕРСИЯ v1.0.1»** с описанием изменений.
   - Нажатие на кнопку **«СКАЧАТЬ И ОБНОВИТЬ APK»** скачивает файл и запускает системный установщик Android (через FileProvider).
-* Репозиторий для проверки обновлений можно указать в `ZEN // PREFS -> АВТООБНОВЛЕНИЕ ЧЕРЕЗ GITHUB RELEASES`.
+* Репозиторий для проверки обновлений можно указать в `N.ECO // PREFS -> АВТООБНОВЛЕНИЕ ЧЕРЕЗ GITHUB RELEASES`.
 
 ---
 

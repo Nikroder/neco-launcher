@@ -53,12 +53,12 @@ jobs:
           chmod +x ./gradlew
           ./gradlew assembleDebug --stacktrace
           # Also assemble release APK if keys exist, or copy debug as release candidate
-          cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/zen-launcher-v1.0.0.apk
+          cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/neco-launcher-v1.0.0.apk
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: zen-launcher-apk
+          name: neco-launcher-apk
           path: app/build/outputs/apk/debug/*.apk
 
       - name: Create GitHub Release and Attach APK
@@ -66,9 +66,9 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: app/build/outputs/apk/debug/*.apk
-          name: Zen Launcher ${{ github.ref_name }}
+          name: N.eco Launcher ${{ github.ref_name }}
           body: |
-            ## ✦ Zen Launcher — Release ${{ github.ref_name }}
+            ## ✦ N.eco Launcher — Release ${{ github.ref_name }}
             
             Минималистичный лаунчер на стеке **Vue + Rust** с эстетикой Nothing OS и медитативным звуковым дизайном Zen.
             
@@ -81,7 +81,7 @@ jobs:
             
             ### 📥 Установка:
             1. Скачайте прикрепленный `.apk` файл ниже.
-            2. Установите на телефон и выберите Zen Launcher приложением по умолчанию.
+            2. Установите на телефон и выберите N.eco launcher приложением по умолчанию.
           draft: false
           prerelease: false
         env:

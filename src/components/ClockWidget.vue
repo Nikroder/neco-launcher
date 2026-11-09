@@ -40,7 +40,7 @@ function onClick() {
   <div class="clock-widget bounce-tap" @click="onClick">
     <div class="os-badge">
       <div class="os-dot"></div>
-      <div class="os-title">ZEN // OS</div>
+      <div class="os-title">N.ECO // OS</div>
     </div>
     <div class="clock-digits">{{ timeStr }}</div>
     <div class="date-label">{{ dateStr }}</div>

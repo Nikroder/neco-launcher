@@ -62,7 +62,7 @@ function handleLaunchApp(appName: string) {
     <div class="status-bar">
       <div class="status-left">
         <span class="status-dot"></span>
-        <span class="status-carrier">ZEN</span>
+        <span class="status-carrier">N.ECO</span>
       </div>
       <div class="status-right">
         <span>5G</span>

@@ -64,14 +64,14 @@ function close() {
     <div class="modal-sheet">
       <div class="sheet-handle" @click="close"></div>
 
-      <div class="modal-title">НАСТРОЙКИ // ZEN LAUNCHER</div>
+      <div class="modal-title">НАСТРОЙКИ // N.ECO LAUNCHER</div>
 
       <!-- Auto Update via GitHub Releases Section -->
       <div class="section-title">АВТООБНОВЛЕНИЕ ЧЕРЕЗ GITHUB RELEASES</div>
       <div class="card-box">
         <label class="field-label">GitHub репозиторий (owner/repo):</label>
         <div class="input-row">
-          <input v-model="repoInput" type="text" placeholder="username/zen-launcher" />
+          <input v-model="repoInput" type="text" placeholder="username/neco-launcher" />
           <button class="action-btn bounce-tap" @click="onSaveRepo">OK</button>
         </div>
 

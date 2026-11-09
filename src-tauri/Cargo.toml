@@ -1,13 +1,13 @@
 [package]
-name = "zen-launcher"
+name = "neco-launcher"
 version = "1.0.0"
-description = "Minimalist Android Launcher with Nothing OS visuals and Zen sound design"
-authors = ["Zen Launcher Team"]
+description = "N.eco launcher: Minimalist Android Launcher with Nothing OS visuals and Zen sound design"
+authors = ["N.eco Launcher Team"]
 license = "MIT"
 edition = "2021"
 
 [lib]
-name = "zen_launcher_lib"
+name = "neco_launcher_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

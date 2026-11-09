@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "ZenMinimalLauncher"
+rootProject.name = "NecoLauncher"
 include(":app")
