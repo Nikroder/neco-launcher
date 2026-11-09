@@ -29,9 +29,9 @@ object GitHubUpdateChecker {
     fun getCurrentVersion(context: Context): String {
         return try {
             val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-            pInfo.versionName ?: "1.0.4"
+            pInfo.versionName ?: "1.0.5"
         } catch (e: Throwable) {
-            "1.0.4"
+            "1.0.5"
         }
     }
 
