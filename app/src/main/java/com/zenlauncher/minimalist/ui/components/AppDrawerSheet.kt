@@ -70,6 +70,7 @@ import androidx.core.graphics.drawable.toBitmap
 import com.zenlauncher.minimalist.audio.ZenSoundEngine
 import com.zenlauncher.minimalist.model.AppInfo
 import com.zenlauncher.minimalist.modes.LauncherMode
+import com.zenlauncher.minimalist.ui.theme.LocalLauncherTheme
 import com.zenlauncher.minimalist.ui.theme.BorderSubtle
 import com.zenlauncher.minimalist.ui.theme.CardSurface
 import com.zenlauncher.minimalist.ui.theme.DarkSurface
@@ -92,6 +93,7 @@ fun AppDrawerSheet(
     initialScrollLetter: String? = null
 ) {
     val context = LocalContext.current
+    val theme = LocalLauncherTheme.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusRequester = remember { FocusRequester() }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -141,7 +143,7 @@ fun AppDrawerSheet(
             onDismiss()
         },
         sheetState = sheetState,
-        containerColor = PureBlack,
+        containerColor = theme.backgroundColor,
         dragHandle = {
             Box(
                 modifier = Modifier
@@ -149,7 +151,7 @@ fun AppDrawerSheet(
                     .width(36.dp)
                     .height(3.dp)
                     .clip(CircleShape)
-                    .background(BorderSubtle)
+                    .background(theme.borderSubtle)
             )
         }
     ) {
@@ -164,7 +166,8 @@ fun AppDrawerSheet(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(16.dp))
-                    .background(CardSurface)
+                    .background(theme.cardSurface)
+                    .border(1.dp, theme.borderSubtle, RoundedCornerShape(16.dp))
                     .padding(horizontal = 14.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -192,7 +195,7 @@ fun AppDrawerSheet(
                         fontFamily = FontFamily.SansSerif
                     ),
                     singleLine = true,
-                    cursorBrush = SolidColor(NothingRed),
+                    cursorBrush = SolidColor(theme.accentColor),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                     keyboardActions = KeyboardActions(onSearch = {
                         keyboardController?.hide()
@@ -254,7 +257,7 @@ fun AppDrawerSheet(
                     text = "РЕЖИМ: ${activeMode.name.uppercase()}",
                     fontSize = 10.sp,
                     fontFamily = FontFamily.Monospace,
-                    color = NothingRed
+                    color = theme.accentColor
                 )
             }
 
@@ -356,7 +359,7 @@ fun AppDrawerSheet(
                                         Icon(
                                             imageVector = if (app.isFavorite) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder,
                                             contentDescription = "Pin to favorites",
-                                            tint = if (app.isFavorite) NothingRed else TextMuted,
+                                            tint = if (app.isFavorite) theme.accentColor else TextMuted,
                                             modifier = Modifier.size(18.dp)
                                         )
                                     }
@@ -368,7 +371,10 @@ fun AppDrawerSheet(
                                         soundEngine.playBack()
                                         itemMenuExpanded = false
                                     },
-                                    modifier = Modifier.background(DarkSurface)
+                                    modifier = Modifier
+                                        .background(theme.darkSurface)
+                                        .border(1.dp, theme.borderSubtle, RoundedCornerShape(14.dp))
+                                        .clip(RoundedCornerShape(14.dp))
                                 ) {
                                     DropdownMenuItem(
                                         text = {
@@ -381,7 +387,7 @@ fun AppDrawerSheet(
                                             Icon(
                                                 if (app.isFavorite) Icons.Outlined.FavoriteBorder else Icons.Outlined.Favorite,
                                                 contentDescription = null,
-                                                tint = NothingRed
+                                                tint = theme.accentColor
                                             )
                                         },
                                         onClick = {

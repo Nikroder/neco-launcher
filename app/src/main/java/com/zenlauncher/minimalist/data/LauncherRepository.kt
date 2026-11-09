@@ -14,6 +14,10 @@ import android.graphics.drawable.Drawable
 import androidx.core.content.edit
 import com.zenlauncher.minimalist.model.AppInfo
 import com.zenlauncher.minimalist.modes.ModesRepository
+import com.zenlauncher.minimalist.ui.theme.AccentColorTheme
+import com.zenlauncher.minimalist.ui.theme.AppListStyle
+import com.zenlauncher.minimalist.ui.theme.LauncherThemeConfig
+import com.zenlauncher.minimalist.ui.theme.SurfaceTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -53,6 +57,37 @@ class LauncherRepository(
     var isGesturesEnabled: Boolean
         get() = prefs.getBoolean("key_gestures_enabled", true)
         set(value) = prefs.edit { putBoolean("key_gestures_enabled", value) }
+
+    private fun buildThemeConfig(): LauncherThemeConfig {
+        val accent = AccentColorTheme.fromId(prefs.getString("key_accent_theme", AccentColorTheme.NOTHING_RED.id) ?: AccentColorTheme.NOTHING_RED.id)
+        val surface = SurfaceTheme.fromId(prefs.getString("key_surface_theme", SurfaceTheme.OLED_BLACK.id) ?: SurfaceTheme.OLED_BLACK.id)
+        val style = AppListStyle.fromId(prefs.getString("key_app_list_style", AppListStyle.NIAGARA_CLEAN.id) ?: AppListStyle.NIAGARA_CLEAN.id)
+        return LauncherThemeConfig(accent, surface, style)
+    }
+
+    private val _themeConfig = MutableStateFlow(buildThemeConfig())
+    val themeConfig: StateFlow<LauncherThemeConfig> = _themeConfig.asStateFlow()
+
+    var accentThemeId: String
+        get() = prefs.getString("key_accent_theme", AccentColorTheme.NOTHING_RED.id) ?: AccentColorTheme.NOTHING_RED.id
+        set(value) {
+            prefs.edit { putString("key_accent_theme", value) }
+            _themeConfig.value = buildThemeConfig()
+        }
+
+    var surfaceThemeId: String
+        get() = prefs.getString("key_surface_theme", SurfaceTheme.OLED_BLACK.id) ?: SurfaceTheme.OLED_BLACK.id
+        set(value) {
+            prefs.edit { putString("key_surface_theme", value) }
+            _themeConfig.value = buildThemeConfig()
+        }
+
+    var appListStyleId: String
+        get() = prefs.getString("key_app_list_style", AppListStyle.NIAGARA_CLEAN.id) ?: AppListStyle.NIAGARA_CLEAN.id
+        set(value) {
+            prefs.edit { putString("key_app_list_style", value) }
+            _themeConfig.value = buildThemeConfig()
+        }
 
     private fun getInitialDefaultSuggestions(): Set<String> {
         val defaults = mutableSetOf<String>()

@@ -65,6 +65,7 @@ import com.zenlauncher.minimalist.ui.components.ModeSelectorRow
 import com.zenlauncher.minimalist.ui.components.NiagaraWaveScrollbar
 import com.zenlauncher.minimalist.ui.components.SettingsDialog
 import com.zenlauncher.minimalist.ui.theme.DarkSurface
+import com.zenlauncher.minimalist.ui.theme.LocalLauncherTheme
 import com.zenlauncher.minimalist.ui.theme.NothingRed
 import com.zenlauncher.minimalist.ui.theme.PureBlack
 import com.zenlauncher.minimalist.ui.theme.TextMuted
@@ -122,7 +123,8 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            ZenLauncherTheme {
+            val themeConfig by repository.themeConfig.collectAsState()
+            ZenLauncherTheme(themeConfig = themeConfig) {
                 HomeScreen(
                     soundEngine = soundEngine,
                     repository = repository,
@@ -276,10 +278,12 @@ fun HomeScreen(
         repository.loadApps()
     }
 
+    val theme = LocalLauncherTheme.current
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(PureBlack)
+            .background(theme.backgroundColor)
             .displayCutoutPadding()
             .navigationBarsPadding()
             .pointerInput(Unit) {
@@ -383,12 +387,9 @@ fun HomeScreen(
                 )
             }
 
-            // Guaranteed breathing room: NEVER shrinks below 36.dp!
-            Spacer(
-                modifier = Modifier
-                    .weight(1f)
-                    .heightIn(min = 36.dp)
-            )
+            // Guaranteed breathing room: Concrete unweighted spacer NEVER collapses below 28.dp!
+            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.weight(1f))
 
             // Samsung Modes & Routines Switcher Row
             ModeSelectorRow(

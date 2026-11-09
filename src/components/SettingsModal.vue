@@ -20,6 +20,26 @@ const hapticsEnabled = ref(ZenAudio.hapticsEnabled)
 const checkStatus = ref('')
 const isChecking = ref(false)
 
+const accents = [
+  { id: 'nothing_red', name: 'Nothing Red', color: '#D71920' },
+  { id: 'cyber_amber', name: 'Amber', color: '#FF6D00' },
+  { id: 'electric_cyan', name: 'Cyan', color: '#00E5FF' },
+  { id: 'emerald_mint', name: 'Mint', color: '#00E676' },
+  { id: 'hyper_violet', name: 'Violet', color: '#A855F7' },
+  { id: 'solar_yellow', name: 'Yellow', color: '#FFD600' },
+  { id: 'sakura_pink', name: 'Pink', color: '#FF4081' },
+  { id: 'pure_white', name: 'White', color: '#FFFFFF' }
+]
+
+const currentAccent = ref(localStorage.getItem('neco_accent') || '#D71920')
+
+function selectAccent(color: string) {
+  currentAccent.value = color
+  document.documentElement.style.setProperty('--accent', color)
+  localStorage.setItem('neco_accent', color)
+  ZenAudio.tap()
+}
+
 function onSaveRepo() {
   GitHubUpdater.setRepo(repoInput.value)
   ZenAudio.tap()
@@ -65,6 +85,22 @@ function close() {
       <div class="sheet-handle" @click="close"></div>
 
       <div class="modal-title">НАСТРОЙКИ // N.ECO LAUNCHER</div>
+
+      <!-- Accent Color Selection Section -->
+      <div class="section-title">ВНЕШНИЙ ВИД И ЦВЕТА</div>
+      <div class="card-box">
+        <label class="field-label">Выберите акцентный цвет:</label>
+        <div class="color-swatches">
+          <div
+            v-for="acc in accents"
+            :key="acc.id"
+            class="color-circle bounce-tap"
+            :style="{ background: acc.color, outline: currentAccent === acc.color ? '2.5px solid #ffffff' : 'none' }"
+            :title="acc.name"
+            @click="selectAccent(acc.color)"
+          ></div>
+        </div>
+      </div>
 
       <!-- Auto Update via GitHub Releases Section -->
       <div class="section-title">АВТООБНОВЛЕНИЕ ЧЕРЕЗ GITHUB RELEASES</div>
@@ -187,6 +223,22 @@ function close() {
   font-family: var(--font-mono);
   display: block;
   margin-bottom: 6px;
+}
+
+.color-swatches {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 4px 2px 8px 2px;
+}
+
+.color-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
 .input-row {

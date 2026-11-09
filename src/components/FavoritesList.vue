@@ -97,14 +97,18 @@ function onOpenSettings() {
 }
 
 .fav-item {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 11px 15px;
+  background: transparent;
+  border-radius: 10px;
+  padding: 6px 8px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.fav-item:hover, .fav-item:active {
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .fav-left {

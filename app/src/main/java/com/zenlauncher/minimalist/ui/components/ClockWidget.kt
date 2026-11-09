@@ -30,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.zenlauncher.minimalist.audio.ZenSoundEngine
+import com.zenlauncher.minimalist.ui.theme.LocalLauncherTheme
 import com.zenlauncher.minimalist.ui.theme.NothingRed
 import com.zenlauncher.minimalist.ui.theme.TextMuted
 import com.zenlauncher.minimalist.ui.theme.TextPrimary
@@ -60,6 +61,8 @@ fun ClockWidget(
     val formattedTime = timeFormat.format(currentTime)
     val formattedDate = dateFormat.format(currentTime).uppercase(Locale("ru"))
 
+    val theme = LocalLauncherTheme.current
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -87,7 +90,7 @@ fun ClockWidget(
             Surface(
                 modifier = Modifier.size(7.dp),
                 shape = CircleShape,
-                color = NothingRed
+                color = theme.accentColor
             ) {}
             Spacer(modifier = Modifier.width(8.dp))
             Text(

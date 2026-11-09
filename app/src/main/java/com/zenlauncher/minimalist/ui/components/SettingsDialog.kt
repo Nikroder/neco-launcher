@@ -4,7 +4,9 @@ import android.content.Context
 import android.content.Intent
 import android.provider.Settings
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,6 +23,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -50,11 +53,15 @@ import com.zenlauncher.minimalist.audio.ZenSoundEngine
 import com.zenlauncher.minimalist.data.LauncherRepository
 import com.zenlauncher.minimalist.media.MediaManager
 import com.zenlauncher.minimalist.modes.ModesRepository
+import com.zenlauncher.minimalist.ui.theme.AccentColorTheme
+import com.zenlauncher.minimalist.ui.theme.AppListStyle
 import com.zenlauncher.minimalist.ui.theme.BorderSubtle
 import com.zenlauncher.minimalist.ui.theme.CardSurface
 import com.zenlauncher.minimalist.ui.theme.DarkSurface
+import com.zenlauncher.minimalist.ui.theme.LocalLauncherTheme
 import com.zenlauncher.minimalist.ui.theme.NothingRed
 import com.zenlauncher.minimalist.ui.theme.PureBlack
+import com.zenlauncher.minimalist.ui.theme.SurfaceTheme
 import com.zenlauncher.minimalist.ui.theme.TextMuted
 import com.zenlauncher.minimalist.ui.theme.TextPrimary
 import com.zenlauncher.minimalist.ui.theme.TextSecondary
@@ -73,8 +80,13 @@ fun SettingsDialog(
     onToggleHideStatusBar: (Boolean) -> Unit = {}
 ) {
     val context = LocalContext.current
+    val theme = LocalLauncherTheme.current
     val coroutineScope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    var accentThemeId by remember { mutableStateOf(repository.accentThemeId) }
+    var surfaceThemeId by remember { mutableStateOf(repository.surfaceThemeId) }
+    var appListStyleId by remember { mutableStateOf(repository.appListStyleId) }
 
     var soundEnabled by remember { mutableStateOf(repository.isSoundEnabled) }
     var hapticsEnabled by remember { mutableStateOf(repository.isHapticsEnabled) }
@@ -95,7 +107,7 @@ fun SettingsDialog(
             onDismiss()
         },
         sheetState = sheetState,
-        containerColor = PureBlack,
+        containerColor = theme.backgroundColor,
         dragHandle = {
             Box(
                 modifier = Modifier
@@ -103,7 +115,7 @@ fun SettingsDialog(
                     .width(36.dp)
                     .height(3.dp)
                     .clip(CircleShape)
-                    .background(BorderSubtle)
+                    .background(theme.borderSubtle)
             )
         }
     ) {
@@ -113,16 +125,263 @@ fun SettingsDialog(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp, vertical = 8.dp)
         ) {
-            Text(
-                text = "НАСТРОЙКИ // ZEN OS",
-                fontFamily = FontFamily.Monospace,
-                fontWeight = FontWeight.Bold,
-                fontSize = 13.sp,
-                letterSpacing = 2.sp,
-                color = TextSecondary
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(6.dp)
+                        .clip(CircleShape)
+                        .background(theme.accentColor)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "НАСТРОЙКИ // N.ECO OS",
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 13.sp,
+                    letterSpacing = 2.sp,
+                    color = TextPrimary
+                )
+            }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(18.dp))
+
+            // Section: Внешний вид и Цвета
+            Text(
+                text = "ВНЕШНИЙ ВИД И ЦВЕТА",
+                fontFamily = FontFamily.Monospace,
+                fontSize = 11.sp,
+                letterSpacing = 1.5.sp,
+                color = theme.accentColor,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // 1. Акцентный цвет
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(theme.cardSurface)
+                    .border(1.dp, theme.borderSubtle, RoundedCornerShape(14.dp))
+                    .padding(14.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Акцентный цвет",
+                        fontFamily = FontFamily.SansSerif,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 14.sp,
+                        color = TextPrimary
+                    )
+                    Text(
+                        text = AccentColorTheme.fromId(accentThemeId).title.uppercase(),
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 11.sp,
+                        color = theme.accentColor,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    AccentColorTheme.values().forEach { accent ->
+                        val isSelected = accentThemeId == accent.id
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(accent.color)
+                                .then(
+                                    if (isSelected) Modifier.border(2.5.dp, TextPrimary, CircleShape)
+                                    else Modifier.border(1.dp, theme.borderSubtle, CircleShape)
+                                )
+                                .clickable {
+                                    soundEngine.playTap()
+                                    accentThemeId = accent.id
+                                    repository.accentThemeId = accent.id
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (isSelected) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = null,
+                                    tint = if (accent == AccentColorTheme.PURE_WHITE) PureBlack else TextPrimary,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // 2. Стиль отображения списка приложений
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(theme.cardSurface)
+                    .border(1.dp, theme.borderSubtle, RoundedCornerShape(14.dp))
+                    .padding(14.dp)
+            ) {
+                Text(
+                    text = "Стиль списка на экране (как в Niagara)",
+                    fontFamily = FontFamily.SansSerif,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 14.sp,
+                    color = TextPrimary
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = AppListStyle.fromId(appListStyleId).description,
+                    fontFamily = FontFamily.SansSerif,
+                    fontSize = 11.5.sp,
+                    color = TextMuted
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    AppListStyle.values().forEach { style ->
+                        val isSelected = appListStyleId == style.id
+                        Row(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(20.dp))
+                                .background(if (isSelected) theme.darkSurface else theme.cardSurface)
+                                .border(
+                                    1.dp,
+                                    if (isSelected) theme.accentColor else theme.borderSubtle,
+                                    RoundedCornerShape(20.dp)
+                                )
+                                .clickable {
+                                    soundEngine.playTap()
+                                    appListStyleId = style.id
+                                    repository.appListStyleId = style.id
+                                }
+                                .padding(horizontal = 12.dp, vertical = 7.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            if (isSelected) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(5.dp)
+                                        .clip(CircleShape)
+                                        .background(theme.accentColor)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                            }
+                            Text(
+                                text = style.title,
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 11.sp,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                color = if (isSelected) TextPrimary else TextSecondary
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // 3. Фоновая тема
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(theme.cardSurface)
+                    .border(1.dp, theme.borderSubtle, RoundedCornerShape(14.dp))
+                    .padding(14.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Фоновая палитра",
+                        fontFamily = FontFamily.SansSerif,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 14.sp,
+                        color = TextPrimary
+                    )
+                    Text(
+                        text = SurfaceTheme.fromId(surfaceThemeId).title,
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 11.sp,
+                        color = TextSecondary
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    SurfaceTheme.values().forEach { surface ->
+                        val isSelected = surfaceThemeId == surface.id
+                        Row(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(20.dp))
+                                .background(if (isSelected) surface.surface else theme.cardSurface)
+                                .border(
+                                    1.dp,
+                                    if (isSelected) theme.accentColor else theme.borderSubtle,
+                                    RoundedCornerShape(20.dp)
+                                )
+                                .clickable {
+                                    soundEngine.playTap()
+                                    surfaceThemeId = surface.id
+                                    repository.surfaceThemeId = surface.id
+                                }
+                                .padding(horizontal = 12.dp, vertical = 7.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(8.dp)
+                                    .clip(CircleShape)
+                                    .background(surface.background)
+                                    .border(1.dp, TextMuted, CircleShape)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = surface.title,
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 11.sp,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                color = if (isSelected) TextPrimary else TextSecondary
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(18.dp))
 
             // Section: Медиа-плеер
             Text(
@@ -219,10 +478,10 @@ fun SettingsDialog(
                         soundEngine.playTap()
                     },
                     colors = SwitchDefaults.colors(
-                        checkedThumbColor = PureBlack,
-                        checkedTrackColor = TextPrimary,
+                        checkedThumbColor = theme.backgroundColor,
+                        checkedTrackColor = theme.accentColor,
                         uncheckedThumbColor = TextMuted,
-                        uncheckedTrackColor = BorderSubtle
+                        uncheckedTrackColor = theme.borderSubtle
                     )
                 )
             }
@@ -327,10 +586,10 @@ fun SettingsDialog(
                         if (checked) soundEngine.playTap()
                     },
                     colors = SwitchDefaults.colors(
-                        checkedThumbColor = PureBlack,
-                        checkedTrackColor = TextPrimary,
+                        checkedThumbColor = theme.backgroundColor,
+                        checkedTrackColor = theme.accentColor,
                         uncheckedThumbColor = TextMuted,
-                        uncheckedTrackColor = BorderSubtle
+                        uncheckedTrackColor = theme.borderSubtle
                     )
                 )
             }
@@ -372,10 +631,10 @@ fun SettingsDialog(
                         soundEngine.playTap()
                     },
                     colors = SwitchDefaults.colors(
-                        checkedThumbColor = PureBlack,
-                        checkedTrackColor = TextPrimary,
+                        checkedThumbColor = theme.backgroundColor,
+                        checkedTrackColor = theme.accentColor,
                         uncheckedThumbColor = TextMuted,
-                        uncheckedTrackColor = BorderSubtle
+                        uncheckedTrackColor = theme.borderSubtle
                     )
                 )
             }
@@ -417,10 +676,10 @@ fun SettingsDialog(
                         onReloadApps()
                     },
                     colors = SwitchDefaults.colors(
-                        checkedThumbColor = PureBlack,
-                        checkedTrackColor = TextPrimary,
+                        checkedThumbColor = theme.backgroundColor,
+                        checkedTrackColor = theme.accentColor,
                         uncheckedThumbColor = TextMuted,
-                        uncheckedTrackColor = BorderSubtle
+                        uncheckedTrackColor = theme.borderSubtle
                     )
                 )
             }
@@ -472,10 +731,10 @@ fun SettingsDialog(
                         soundEngine.playTap()
                     },
                     colors = SwitchDefaults.colors(
-                        checkedThumbColor = PureBlack,
-                        checkedTrackColor = TextPrimary,
+                        checkedThumbColor = theme.backgroundColor,
+                        checkedTrackColor = theme.accentColor,
                         uncheckedThumbColor = TextMuted,
-                        uncheckedTrackColor = BorderSubtle
+                        uncheckedTrackColor = theme.borderSubtle
                     )
                 )
             }
@@ -519,10 +778,10 @@ fun SettingsDialog(
                             soundEngine.playTap()
                         },
                         colors = SwitchDefaults.colors(
-                            checkedThumbColor = PureBlack,
-                            checkedTrackColor = TextPrimary,
+                            checkedThumbColor = theme.backgroundColor,
+                            checkedTrackColor = theme.accentColor,
                             uncheckedThumbColor = TextMuted,
-                            uncheckedTrackColor = BorderSubtle
+                            uncheckedTrackColor = theme.borderSubtle
                         )
                     )
                 }

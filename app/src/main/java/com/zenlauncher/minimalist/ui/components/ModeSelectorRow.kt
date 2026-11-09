@@ -2,6 +2,7 @@ package com.zenlauncher.minimalist.ui.components
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,12 +32,7 @@ import com.zenlauncher.minimalist.audio.ZenSoundEngine
 import com.zenlauncher.minimalist.modes.LauncherMode
 import com.zenlauncher.minimalist.ui.animation.ZenMotion
 import com.zenlauncher.minimalist.ui.animation.bounceClick
-import com.zenlauncher.minimalist.ui.theme.CardSurface
-import com.zenlauncher.minimalist.ui.theme.DarkSurface
-import com.zenlauncher.minimalist.ui.theme.NothingRed
-import com.zenlauncher.minimalist.ui.theme.TextMuted
-import com.zenlauncher.minimalist.ui.theme.TextPrimary
-import com.zenlauncher.minimalist.ui.theme.TextSecondary
+import com.zenlauncher.minimalist.ui.theme.LocalLauncherTheme
 
 @Composable
 fun ModeSelectorRow(
@@ -47,6 +43,8 @@ fun ModeSelectorRow(
     onAddNewMode: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val theme = LocalLauncherTheme.current
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -58,13 +56,13 @@ fun ModeSelectorRow(
             val isActive = mode.id == activeMode.id
 
             val backgroundColor by animateColorAsState(
-                targetValue = if (isActive) CardSurface else DarkSurface,
+                targetValue = if (isActive) theme.cardSurface else theme.darkSurface,
                 animationSpec = ZenMotion.ColorSpring,
                 label = "modeBgColor"
             )
 
             val textColor by animateColorAsState(
-                targetValue = if (isActive) TextPrimary else TextMuted,
+                targetValue = if (isActive) com.zenlauncher.minimalist.ui.theme.TextPrimary else com.zenlauncher.minimalist.ui.theme.TextMuted,
                 animationSpec = ZenMotion.ColorSpring,
                 label = "modeTextColor"
             )
@@ -72,6 +70,10 @@ fun ModeSelectorRow(
             Row(
                 modifier = Modifier
                     .clip(RoundedCornerShape(20.dp))
+                    .then(
+                        if (isActive) Modifier.border(1.dp, theme.accentColor.copy(alpha = 0.4f), RoundedCornerShape(20.dp))
+                        else Modifier
+                    )
                     .background(backgroundColor)
                     .bounceClick(scaleDown = 0.94f) {
                         soundEngine.playTap()
@@ -85,7 +87,7 @@ fun ModeSelectorRow(
                         modifier = Modifier
                             .size(5.dp)
                             .clip(CircleShape)
-                            .background(NothingRed)
+                            .background(theme.accentColor)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                 }
@@ -106,7 +108,7 @@ fun ModeSelectorRow(
             modifier = Modifier
                 .size(28.dp)
                 .clip(CircleShape)
-                .background(DarkSurface)
+                .background(theme.darkSurface)
                 .bounceClick(scaleDown = 0.90f) {
                     soundEngine.playTap()
                     onAddNewMode()
@@ -116,7 +118,7 @@ fun ModeSelectorRow(
             Icon(
                 imageVector = Icons.Outlined.Add,
                 contentDescription = "Add Mode",
-                tint = TextSecondary,
+                tint = com.zenlauncher.minimalist.ui.theme.TextSecondary,
                 modifier = Modifier.size(14.dp)
             )
         }

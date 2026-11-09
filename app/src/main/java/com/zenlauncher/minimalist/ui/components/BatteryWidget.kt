@@ -50,6 +50,7 @@ import com.zenlauncher.minimalist.ui.theme.CardSurface
 import com.zenlauncher.minimalist.ui.theme.DarkSurface
 import com.zenlauncher.minimalist.ui.theme.DotActive
 import com.zenlauncher.minimalist.ui.theme.DotInactive
+import com.zenlauncher.minimalist.ui.theme.LocalLauncherTheme
 import com.zenlauncher.minimalist.ui.theme.NothingRed
 import com.zenlauncher.minimalist.ui.theme.TextMuted
 import com.zenlauncher.minimalist.ui.theme.TextPrimary
@@ -63,6 +64,7 @@ fun BatteryWidget(
     modifier: Modifier = Modifier
 ) {
     var isExpanded by remember { mutableStateOf(false) }
+    val theme = LocalLauncherTheme.current
 
     val arrowRotation by animateFloatAsState(
         targetValue = if (isExpanded) 180f else 0f,
@@ -74,7 +76,7 @@ fun BatteryWidget(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(CardSurface)
+            .background(theme.cardSurface)
             .animateContentSize(animationSpec = ZenMotion.IntSizeSpring)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
@@ -83,7 +85,7 @@ fun BatteryWidget(
                 soundEngine.playTap()
                 isExpanded = !isExpanded
             }
-            .padding(horizontal = 14.dp, vertical = 10.dp)
+            .padding(horizontal = 14.dp, vertical = 8.dp)
     ) {
         // Main Header Row (Phone Battery)
         Row(
@@ -96,7 +98,7 @@ fun BatteryWidget(
                     modifier = Modifier
                         .size(6.dp)
                         .clip(CircleShape)
-                        .background(if (phoneDevice.isCharging) NothingRed else DotActive)
+                        .background(if (phoneDevice.isCharging) theme.accentColor else DotActive)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
@@ -114,7 +116,7 @@ fun BatteryWidget(
                         text = "+${connectedAccessories.size} DEV",
                         fontSize = 10.sp,
                         fontFamily = FontFamily.Monospace,
-                        color = NothingRed,
+                        color = theme.accentColor,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -153,15 +155,15 @@ fun BatteryWidget(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 12.dp)
+                    .padding(top = 8.dp)
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(1.dp)
-                        .background(BorderSubtle)
+                        .background(theme.borderSubtle)
                 )
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
                 Text(
                     text = "ПОДКЛЮЧЕННЫЕ УСТРОЙСТВА",
@@ -172,7 +174,7 @@ fun BatteryWidget(
                     color = TextMuted
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
                 // Internal Phone Row
                 ConnectedDeviceRow(device = phoneDevice)
@@ -183,7 +185,7 @@ fun BatteryWidget(
                         fontSize = 12.sp,
                         fontFamily = FontFamily.SansSerif,
                         color = TextMuted,
-                        modifier = Modifier.padding(vertical = 6.dp)
+                        modifier = Modifier.padding(vertical = 3.dp)
                     )
                 } else {
                     connectedAccessories.forEach { accessory ->

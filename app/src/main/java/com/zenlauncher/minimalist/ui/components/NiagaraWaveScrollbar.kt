@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.zenlauncher.minimalist.ui.theme.DarkSurface
+import com.zenlauncher.minimalist.ui.theme.LocalLauncherTheme
 import com.zenlauncher.minimalist.ui.theme.NothingRed
 import com.zenlauncher.minimalist.ui.theme.PureBlack
 import com.zenlauncher.minimalist.ui.theme.TextMuted
@@ -67,6 +68,7 @@ fun NiagaraWaveScrollbar(
 ) {
     if (letters.isEmpty()) return
 
+    val theme = LocalLauncherTheme.current
     var isDragging by remember { mutableStateOf(false) }
     var currentTouchY by remember { mutableFloatStateOf(0f) }
     var totalHeightPx by remember { mutableFloatStateOf(1f) }
@@ -172,9 +174,9 @@ fun NiagaraWaveScrollbar(
                 )
 
                 val textColor: Color = when {
-                    isDragging && distance == 0 -> NothingRed
+                    isDragging && distance == 0 -> theme.accentColor
                     isDragging && inWave -> TextPrimary
-                    selectedLetter == letter -> NothingRed
+                    selectedLetter == letter -> theme.accentColor
                     else -> TextMuted.copy(alpha = 0.65f)
                 }
 
@@ -211,8 +213,8 @@ fun NiagaraWaveScrollbar(
                         .offset { IntOffset(x = -130, y = 0) }
                         .size(68.dp)
                         .clip(RoundedCornerShape(20.dp))
-                        .background(PureBlack)
-                        .border(1.5.dp, NothingRed, RoundedCornerShape(20.dp)),
+                        .background(theme.backgroundColor)
+                        .border(1.5.dp, theme.accentColor, RoundedCornerShape(20.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {

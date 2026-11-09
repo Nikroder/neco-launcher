@@ -45,6 +45,8 @@ import com.zenlauncher.minimalist.audio.ZenSoundEngine
 import com.zenlauncher.minimalist.media.MediaManager
 import com.zenlauncher.minimalist.media.MediaTrackState
 import com.zenlauncher.minimalist.ui.theme.CardSurface
+import com.zenlauncher.minimalist.ui.theme.DarkSurface
+import com.zenlauncher.minimalist.ui.theme.LocalLauncherTheme
 import com.zenlauncher.minimalist.ui.theme.NothingRed
 import com.zenlauncher.minimalist.ui.theme.TextMuted
 import com.zenlauncher.minimalist.ui.theme.TextPrimary
@@ -57,6 +59,7 @@ fun MediaPlayerWidget(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val theme = LocalLauncherTheme.current
 
     AnimatedVisibility(
         visible = trackState != null,
@@ -69,7 +72,7 @@ fun MediaPlayerWidget(
             modifier = modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(16.dp))
-                .background(CardSurface)
+                .background(theme.cardSurface)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null
@@ -94,14 +97,14 @@ fun MediaPlayerWidget(
                     modifier = Modifier
                         .size(38.dp)
                         .clip(CircleShape)
-                        .background(com.zenlauncher.minimalist.ui.theme.DarkSurface),
+                        .background(theme.darkSurface),
                     contentAlignment = Alignment.Center
                 ) {
                     Box(
                         modifier = Modifier
                             .size(if (trackState.isPlaying) 10.dp else 6.dp)
                             .clip(CircleShape)
-                            .background(if (trackState.isPlaying) NothingRed else TextMuted)
+                            .background(if (trackState.isPlaying) theme.accentColor else TextMuted)
                     )
                 }
             }
@@ -162,12 +165,12 @@ fun MediaPlayerWidget(
                     modifier = Modifier
                         .size(36.dp)
                         .clip(CircleShape)
-                        .background(com.zenlauncher.minimalist.ui.theme.DarkSurface)
+                        .background(theme.darkSurface)
                 ) {
                     Icon(
                         imageVector = if (trackState.isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                         contentDescription = if (trackState.isPlaying) "Pause" else "Play",
-                        tint = if (trackState.isPlaying) NothingRed else TextPrimary,
+                        tint = if (trackState.isPlaying) theme.accentColor else TextPrimary,
                         modifier = Modifier.size(20.dp)
                     )
                 }
