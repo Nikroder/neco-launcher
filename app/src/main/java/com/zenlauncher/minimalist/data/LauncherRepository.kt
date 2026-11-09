@@ -46,6 +46,14 @@ class LauncherRepository(
         get() = prefs.getBoolean("key_monochrome_icons", true)
         set(value) = prefs.edit { putBoolean("key_monochrome_icons", value) }
 
+    var isHideStatusBar: Boolean
+        get() = prefs.getBoolean("key_hide_status_bar", true)
+        set(value) = prefs.edit { putBoolean("key_hide_status_bar", value) }
+
+    var isGesturesEnabled: Boolean
+        get() = prefs.getBoolean("key_gestures_enabled", true)
+        set(value) = prefs.edit { putBoolean("key_gestures_enabled", value) }
+
     private fun getInitialDefaultSuggestions(): Set<String> {
         val defaults = mutableSetOf<String>()
         val mainIntent = Intent(Intent.ACTION_MAIN, null).apply {

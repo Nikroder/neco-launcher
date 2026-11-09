@@ -4,6 +4,8 @@
     <!-- Allows tactile haptic feedback synchronized with zen sounds -->
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+    <!-- Allows expanding notification shade on swipe gestures -->
+    <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
 
     <!-- Bluetooth permissions to query battery levels of connected devices (Buds, Watch, Stylus) -->
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />

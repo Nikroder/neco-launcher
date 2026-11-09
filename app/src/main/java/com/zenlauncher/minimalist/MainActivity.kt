@@ -2,22 +2,25 @@ package com.zenlauncher.minimalist
 
 import android.content.ComponentName
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
@@ -29,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -36,10 +40,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import com.zenlauncher.minimalist.audio.ZenSoundEngine
 import com.zenlauncher.minimalist.battery.ConnectedDevicesManager
 import com.zenlauncher.minimalist.data.LauncherRepository
@@ -77,6 +85,15 @@ class MainActivity : ComponentActivity() {
             android.util.Log.w("MainActivity", "EdgeToEdge fallback", e)
         }
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            try {
+                window.attributes.layoutInDisplayCutoutMode =
+                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            } catch (e: Throwable) {
+                // Ignore
+            }
+        }
+
         try {
             soundEngine = ZenSoundEngine(this)
             modesRepository = ModesRepository(this)
@@ -91,6 +108,17 @@ class MainActivity : ComponentActivity() {
             android.util.Log.e("MainActivity", "Initialization error", e)
         }
 
+        try {
+            WindowCompat.setDecorFitsSystemWindows(window, false)
+            if (::repository.isInitialized) {
+                applyFullscreen(repository.isHideStatusBar)
+            } else {
+                applyFullscreen(true)
+            }
+        } catch (e: Throwable) {
+            android.util.Log.w("MainActivity", "Fullscreen init error", e)
+        }
+
         setContent {
             ZenLauncherTheme {
                 HomeScreen(
@@ -98,14 +126,51 @@ class MainActivity : ComponentActivity() {
                     repository = repository,
                     modesRepository = modesRepository,
                     devicesManager = devicesManager,
-                    onLaunchApp = { app -> launchApp(app) }
+                    onLaunchApp = { app -> launchApp(app) },
+                    onExpandNotifications = { expandNotificationShade() },
+                    onToggleHideStatusBar = { hide -> applyFullscreen(hide) }
                 )
+            }
+        }
+    }
+
+    fun applyFullscreen(hideStatusBar: Boolean) {
+        try {
+            val controller = WindowCompat.getInsetsController(window, window.decorView)
+            controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            if (hideStatusBar) {
+                controller.hide(WindowInsetsCompat.Type.statusBars())
+            } else {
+                controller.show(WindowInsetsCompat.Type.statusBars())
+            }
+        } catch (e: Throwable) {
+            android.util.Log.w("MainActivity", "applyFullscreen error", e)
+        }
+    }
+
+    fun expandNotificationShade() {
+        try {
+            val statusBarService = getSystemService("statusbar")
+            val statusBarManager = Class.forName("android.app.StatusBarManager")
+            val method = statusBarManager.getMethod("expandNotificationsPanel")
+            method.invoke(statusBarService)
+        } catch (e: Throwable) {
+            try {
+                val statusBarService = getSystemService("statusbar")
+                val statusBarManager = Class.forName("android.app.StatusBarManager")
+                val method = statusBarManager.getMethod("expand")
+                method.invoke(statusBarService)
+            } catch (e2: Throwable) {
+                android.util.Log.w("MainActivity", "Failed to expand status bar", e2)
             }
         }
     }
 
     override fun onResume() {
         super.onResume()
+        if (::repository.isInitialized) {
+            applyFullscreen(repository.isHideStatusBar)
+        }
         if (::devicesManager.isInitialized) {
             devicesManager.refreshConnectedBluetoothDevices()
         }
@@ -169,7 +234,9 @@ fun HomeScreen(
     repository: LauncherRepository,
     modesRepository: ModesRepository,
     devicesManager: ConnectedDevicesManager,
-    onLaunchApp: (AppInfo) -> Unit
+    onLaunchApp: (AppInfo) -> Unit,
+    onExpandNotifications: () -> Unit,
+    onToggleHideStatusBar: (Boolean) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     val allApps by repository.allApps.collectAsState()
@@ -186,6 +253,14 @@ fun HomeScreen(
     var showAddModeDialog by remember { mutableStateOf(false) }
     var newModeName by remember { mutableStateOf("") }
 
+    val density = LocalDensity.current
+    val verticalThresholdPx = remember(density) { with(density) { 36.dp.toPx() } }
+    val horizontalThresholdPx = remember(density) { with(density) { 48.dp.toPx() } }
+
+    var accumulatedDragX by remember { mutableFloatStateOf(0f) }
+    var accumulatedDragY by remember { mutableFloatStateOf(0f) }
+    var gestureTriggered by remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
         repository.loadApps()
     }
@@ -194,21 +269,87 @@ fun HomeScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(PureBlack)
-            .statusBarsPadding()
+            .displayCutoutPadding()
             .navigationBarsPadding()
             .pointerInput(Unit) {
-                detectVerticalDragGestures { _, dragAmount ->
-                    if (dragAmount < -25 && !isDrawerOpen && !isSettingsOpen) {
-                        soundEngine.playDrawer()
-                        isDrawerOpen = true
+                detectTapGestures(
+                    onDoubleTap = {
+                        if (!isDrawerOpen && !isSettingsOpen) {
+                            soundEngine.playTap()
+                            isSettingsOpen = true
+                        }
+                    },
+                    onLongPress = {
+                        if (!isDrawerOpen && !isSettingsOpen) {
+                            soundEngine.playTap()
+                            isSettingsOpen = true
+                        }
                     }
+                )
+            }
+            .pointerInput(repository.isGesturesEnabled) {
+                if (repository.isGesturesEnabled) {
+                    detectDragGestures(
+                        onDragStart = {
+                            accumulatedDragX = 0f
+                            accumulatedDragY = 0f
+                            gestureTriggered = false
+                        },
+                        onDragEnd = {
+                            gestureTriggered = false
+                        },
+                        onDragCancel = {
+                            gestureTriggered = false
+                        },
+                        onDrag = { change, dragAmount ->
+                            if (!gestureTriggered && !isDrawerOpen && !isSettingsOpen) {
+                                accumulatedDragX += dragAmount.x
+                                accumulatedDragY += dragAmount.y
+
+                                val absX = kotlin.math.abs(accumulatedDragX)
+                                val absY = kotlin.math.abs(accumulatedDragY)
+
+                                if (absY > absX && absY > verticalThresholdPx) {
+                                    gestureTriggered = true
+                                    change.consume()
+                                    if (accumulatedDragY < 0) {
+                                        // Swipe UP: Open Drawer
+                                        soundEngine.playDrawer()
+                                        isDrawerOpen = true
+                                    } else {
+                                        // Swipe DOWN: Expand Notification Shade
+                                        soundEngine.playTap()
+                                        onExpandNotifications()
+                                    }
+                                } else if (absX > absY && absX > horizontalThresholdPx) {
+                                    gestureTriggered = true
+                                    change.consume()
+                                    val modes = allModes
+                                    if (modes.isNotEmpty()) {
+                                        val currentIndex = modes.indexOfFirst { it.id == activeMode.id }
+                                        if (currentIndex != -1) {
+                                            soundEngine.playTick()
+                                            val newIndex = if (accumulatedDragX < 0) {
+                                                (currentIndex + 1) % modes.size
+                                            } else {
+                                                if (currentIndex - 1 < 0) modes.size - 1 else currentIndex - 1
+                                            }
+                                            modesRepository.selectMode(modes[newIndex].id)
+                                            repository.updateFavoritesListForCurrentMode()
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    )
                 }
             }
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp, vertical = 18.dp)
+                .padding(horizontal = 24.dp)
+                .padding(top = 16.dp, bottom = 12.dp)
         ) {
             // Clock & Date Widget
             ClockWidget(soundEngine = soundEngine)
@@ -289,7 +430,8 @@ fun HomeScreen(
                     coroutineScope.launch {
                         repository.loadApps()
                     }
-                }
+                },
+                onToggleHideStatusBar = onToggleHideStatusBar
             )
         }
 

@@ -63,7 +63,8 @@ fun SettingsDialog(
     repository: LauncherRepository,
     modesRepository: ModesRepository,
     onDismiss: () -> Unit,
-    onReloadApps: () -> Unit
+    onReloadApps: () -> Unit,
+    onToggleHideStatusBar: (Boolean) -> Unit = {}
 ) {
     val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -71,6 +72,8 @@ fun SettingsDialog(
     var soundEnabled by remember { mutableStateOf(repository.isSoundEnabled) }
     var hapticsEnabled by remember { mutableStateOf(repository.isHapticsEnabled) }
     var monochromeEnabled by remember { mutableStateOf(repository.isMonochromeIcons) }
+    var hideStatusBarEnabled by remember { mutableStateOf(repository.isHideStatusBar) }
+    var gesturesEnabled by remember { mutableStateOf(repository.isGesturesEnabled) }
     var autoDndEnabled by remember { mutableStateOf(modesRepository.isAutoDndSyncEnabled) }
 
     val allModes by modesRepository.allModes.collectAsState()
@@ -409,6 +412,128 @@ fun SettingsDialog(
                         uncheckedTrackColor = BorderSubtle
                     )
                 )
+            }
+
+            Spacer(modifier = Modifier.height(18.dp))
+
+            // Section: Экран и Жесты
+            Text(
+                text = "ЭКРАН И ЖЕСТЫ",
+                fontFamily = FontFamily.Monospace,
+                fontSize = 11.sp,
+                letterSpacing = 1.5.sp,
+                color = TextMuted
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Hide status bar toggle
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(CardSurface)
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Скрыть строку уведомлений",
+                        fontFamily = FontFamily.SansSerif,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 15.sp,
+                        color = TextPrimary
+                    )
+                    Text(
+                        text = "Полный экран OLED (шторка доступна по свайпу вниз)",
+                        fontFamily = FontFamily.SansSerif,
+                        fontSize = 12.sp,
+                        color = TextMuted
+                    )
+                }
+
+                Switch(
+                    checked = hideStatusBarEnabled,
+                    onCheckedChange = { checked ->
+                        hideStatusBarEnabled = checked
+                        repository.isHideStatusBar = checked
+                        onToggleHideStatusBar(checked)
+                        soundEngine.playTap()
+                    },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = PureBlack,
+                        checkedTrackColor = TextPrimary,
+                        uncheckedThumbColor = TextMuted,
+                        uncheckedTrackColor = BorderSubtle
+                    )
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Gestures toggle and help card
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(CardSurface)
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Управление свайпами",
+                            fontFamily = FontFamily.SansSerif,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 15.sp,
+                            color = TextPrimary
+                        )
+                        Text(
+                            text = "Быстрые жесты на главном экране",
+                            fontFamily = FontFamily.SansSerif,
+                            fontSize = 12.sp,
+                            color = TextMuted
+                        )
+                    }
+
+                    Switch(
+                        checked = gesturesEnabled,
+                        onCheckedChange = { checked ->
+                            gesturesEnabled = checked
+                            repository.isGesturesEnabled = checked
+                            soundEngine.playTap()
+                        },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = PureBlack,
+                            checkedTrackColor = TextPrimary,
+                            uncheckedThumbColor = TextMuted,
+                            uncheckedTrackColor = BorderSubtle
+                        )
+                    )
+                }
+
+                if (gesturesEnabled) {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(1.dp)
+                            .background(BorderSubtle)
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Text(
+                        text = "• Свайп вниз ↓ : Открыть шторку уведомлений\n• Свайп вверх ↑ : Все приложения и поиск\n• Свайп влево/вправо ← → : Смена режима Samsung\n• Двойной тап 2× : Открыть настройки",
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 11.5.sp,
+                        color = TextSecondary,
+                        lineHeight = 18.sp
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(18.dp))
