@@ -104,8 +104,8 @@ fun FavoritesList(
         AnimatedContent(
             targetState = favorites,
             transitionSpec = {
-                (fadeIn(ZenMotion.SmoothFade) + slideInHorizontally(ZenMotion.GentleSpring) { 40 })
-                    .togetherWith(fadeOut(ZenMotion.SmoothFade) + slideOutHorizontally(ZenMotion.GentleSpring) { -40 })
+                (fadeIn(ZenMotion.smoothFade()) + slideInHorizontally(ZenMotion.IntOffsetSpring) { 40 })
+                    .togetherWith(fadeOut(ZenMotion.smoothFade()) + slideOutHorizontally(ZenMotion.IntOffsetSpring) { -40 })
             },
             label = "modeFavoritesTransition"
         ) { currentFavorites ->

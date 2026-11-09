@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.asStateFlow
 class ConnectedDevicesManager(private val context: Context) {
 
     private val bluetoothManager: BluetoothManager? =
-        context.getSystemService(Context.BLUETOOTH_MANAGER_SERVICE) as? BluetoothManager
+        context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
     private val bluetoothAdapter: BluetoothAdapter? = bluetoothManager?.adapter
 
     private val _phoneDevice = MutableStateFlow(

@@ -59,13 +59,13 @@ fun ModeSelectorRow(
 
             val backgroundColor by animateColorAsState(
                 targetValue = if (isActive) CardSurface else DarkSurface,
-                animationSpec = ZenMotion.GentleSpring,
+                animationSpec = ZenMotion.ColorSpring,
                 label = "modeBgColor"
             )
 
             val textColor by animateColorAsState(
                 targetValue = if (isActive) TextPrimary else TextMuted,
-                animationSpec = ZenMotion.GentleSpring,
+                animationSpec = ZenMotion.ColorSpring,
                 label = "modeTextColor"
             )
 

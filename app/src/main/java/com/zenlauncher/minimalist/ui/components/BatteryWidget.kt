@@ -66,7 +66,7 @@ fun BatteryWidget(
 
     val arrowRotation by animateFloatAsState(
         targetValue = if (isExpanded) 180f else 0f,
-        animationSpec = ZenMotion.GentleSpring,
+        animationSpec = ZenMotion.FloatSpring,
         label = "arrowRotation"
     )
 
@@ -75,7 +75,7 @@ fun BatteryWidget(
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(CardSurface)
-            .animateContentSize(animationSpec = ZenMotion.GentleSpring)
+            .animateContentSize(animationSpec = ZenMotion.IntSizeSpring)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null
@@ -147,8 +147,8 @@ fun BatteryWidget(
         // Expanded Connected Devices Section
         AnimatedVisibility(
             visible = isExpanded,
-            enter = fadeIn(ZenMotion.SmoothFade) + slideInVertically(ZenMotion.GentleSpring) { -15 },
-            exit = fadeOut(ZenMotion.SmoothFade) + slideOutVertically(ZenMotion.GentleSpring) { -15 }
+            enter = fadeIn(ZenMotion.smoothFade()) + slideInVertically(ZenMotion.IntOffsetSpring) { -15 },
+            exit = fadeOut(ZenMotion.smoothFade()) + slideOutVertically(ZenMotion.IntOffsetSpring) { -15 }
         ) {
             Column(
                 modifier = Modifier

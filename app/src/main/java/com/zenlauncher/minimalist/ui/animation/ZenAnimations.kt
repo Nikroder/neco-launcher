@@ -12,25 +12,27 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 
 /**
  * Плавные пружинные характеристики в стиле Nothing OS / iOS
  */
 object ZenMotion {
-    val GentleSpring = spring<Float>(
-        dampingRatio = 0.82f,
-        stiffness = 380f
+    fun <T> springSpec(damping: Float = 0.82f, stiffness: Float = 380f) = spring<T>(
+        dampingRatio = damping,
+        stiffness = stiffness
     )
 
-    val SnappySpring = spring<Float>(
-        dampingRatio = Spring.DampingRatioLowBouncy,
-        stiffness = Spring.StiffnessMediumLow
-    )
+    val FloatSpring = spring<Float>(dampingRatio = 0.82f, stiffness = 380f)
+    val IntOffsetSpring = spring<IntOffset>(dampingRatio = 0.82f, stiffness = 380f)
+    val IntSizeSpring = spring<IntSize>(dampingRatio = 0.82f, stiffness = 380f)
+    val ColorSpring = spring<Color>(dampingRatio = 0.82f, stiffness = 380f)
 
-    val SmoothFade = tween<Float>(
-        durationMillis = 260,
+    fun <T> smoothFade(duration: Int = 260) = tween<T>(
+        durationMillis = duration,
         easing = FastOutSlowInEasing
     )
 }
@@ -47,7 +49,7 @@ fun Modifier.bounceClick(
 
     val scale by animateFloatAsState(
         targetValue = if (isPressed) scaleDown else 1f,
-        animationSpec = ZenMotion.GentleSpring,
+        animationSpec = ZenMotion.FloatSpring,
         label = "bounceScale"
     )
 
