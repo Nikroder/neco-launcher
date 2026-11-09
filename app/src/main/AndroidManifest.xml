@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Required for checking and downloading updates from GitHub Releases -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    
     <!-- Allows tactile haptic feedback synchronized with zen sounds -->
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
