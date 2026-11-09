@@ -24,17 +24,11 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Android NDK & Build Tools
-        run: |
-          sdkmanager --install "ndk;26.1.10909125" "build-tools;34.0.0" "platforms;android-34"
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v3
 
       - name: Set up Rust stable
         uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android
 
       - name: Install Node.js
         uses: actions/setup-node@v4
@@ -48,40 +42,39 @@ jobs:
       - name: Build Vue 3 Frontend
         run: npm run build
 
-      - name: Build Android APK via Gradle
+      - name: Build Android APK
         run: |
           chmod +x ./gradlew
           ./gradlew assembleDebug --stacktrace
-          # Also assemble release APK if keys exist, or copy debug as release candidate
-          cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/neco-launcher-v1.0.0.apk
+          mkdir -p release-apk
+          cp app/build/outputs/apk/debug/app-debug.apk release-apk/neco-launcher-v1.0.0.apk
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: neco-launcher-apk
-          path: app/build/outputs/apk/debug/*.apk
+          path: release-apk/*.apk
 
       - name: Create GitHub Release and Attach APK
         if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
         uses: softprops/action-gh-release@v2
         with:
-          files: app/build/outputs/apk/debug/*.apk
+          files: release-apk/*.apk
           name: N.eco Launcher ${{ github.ref_name }}
           body: |
             ## ✦ N.eco Launcher — Release ${{ github.ref_name }}
             
-            Минималистичный лаунчер на стеке **Vue + Rust** с эстетикой Nothing OS и медитативным звуковым дизайном Zen.
+            Минималистичный Android-лаунчер на стеке **Vue 3 + Rust (Tauri Mobile)** в эстетике Nothing OS.
             
-            ### ✨ Что нового:
-            * Мониторинг заряда подключенных устройств (Bluetooth & Samsung Ecosystem)
+            ### ✨ Возможности:
+            * Мониторинг заряда подключенных устройств (Galaxy Buds, Galaxy Watch, S Pen)
             * Поддержка профилей избранного для Режимов Samsung (Modes & Routines)
             * Динамический медиа-плеер для управления воспроизведением
             * Плавные пружинные анимации
             * Встроенное автообновление через GitHub Releases
             
             ### 📥 Установка:
-            1. Скачайте прикрепленный `.apk` файл ниже.
-            2. Установите на телефон и выберите N.eco launcher приложением по умолчанию.
+            Скачайте прикрепленный файл `neco-launcher-v1.0.0.apk` ниже и установите на телефон.
           draft: false
           prerelease: false
         env:
