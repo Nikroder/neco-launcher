@@ -61,6 +61,7 @@ import com.zenlauncher.minimalist.ui.components.ClockWidget
 import com.zenlauncher.minimalist.ui.components.FavoritesList
 import com.zenlauncher.minimalist.ui.components.MediaPlayerWidget
 import com.zenlauncher.minimalist.ui.components.ModeSelectorRow
+import com.zenlauncher.minimalist.ui.components.NiagaraWaveScrollbar
 import com.zenlauncher.minimalist.ui.components.SettingsDialog
 import com.zenlauncher.minimalist.ui.theme.DarkSurface
 import com.zenlauncher.minimalist.ui.theme.NothingRed
@@ -252,6 +253,15 @@ fun HomeScreen(
     var isSettingsOpen by remember { mutableStateOf(false) }
     var showAddModeDialog by remember { mutableStateOf(false) }
     var newModeName by remember { mutableStateOf("") }
+    var drawerInitialLetter by remember { mutableStateOf<String?>(null) }
+
+    val allLetters = remember(allApps) {
+        val distinct = allApps
+            .map { it.label.take(1).uppercase() }
+            .distinct()
+            .sorted()
+        if (distinct.isEmpty()) listOf("A", "M", "Z") else distinct
+    }
 
     val density = LocalDensity.current
     val verticalThresholdPx = remember(density) { with(density) { 36.dp.toPx() } }
@@ -404,6 +414,22 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(8.dp))
         }
 
+        // Niagara Alphabet Wave Slider on Home Screen
+        if (!isDrawerOpen && !isSettingsOpen && allLetters.size > 2) {
+            NiagaraWaveScrollbar(
+                letters = allLetters,
+                selectedLetter = null,
+                onLetterSelected = { letter ->
+                    soundEngine.playTick()
+                    drawerInitialLetter = letter
+                    isDrawerOpen = true
+                },
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .padding(end = 2.dp, top = 70.dp, bottom = 40.dp)
+            )
+        }
+
         // App Drawer Sheet
         if (isDrawerOpen) {
             AppDrawerSheet(
@@ -412,10 +438,15 @@ fun HomeScreen(
                 soundEngine = soundEngine,
                 onAppClick = { app ->
                     isDrawerOpen = false
+                    drawerInitialLetter = null
                     onLaunchApp(app)
                 },
                 onToggleFavorite = { repository.toggleFavorite(it) },
-                onDismiss = { isDrawerOpen = false }
+                onDismiss = {
+                    isDrawerOpen = false
+                    drawerInitialLetter = null
+                },
+                initialScrollLetter = drawerInitialLetter
             )
         }
 

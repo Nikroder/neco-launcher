@@ -166,6 +166,24 @@ function handleLaunchApp(appName: string) {
       />
     </div>
 
+    <!-- Right Edge Niagara Quick Alphabet Strip on Home Screen -->
+    <div
+      v-if="!isDrawerOpen && !isSettingsOpen"
+      class="home-niagara-strip"
+      title="Нажмите для открытия алфавитного водопада Niagara"
+      @click="isDrawerOpen = true; ZenAudio.drawer()"
+    >
+      <span>A</span>
+      <span>•</span>
+      <span>Б</span>
+      <span>•</span>
+      <span>M</span>
+      <span>•</span>
+      <span>T</span>
+      <span>•</span>
+      <span>Я</span>
+    </div>
+
     <!-- Pull-down Notification Shade (Шторка уведомлений Samsung / Nothing OS) -->
     <div
       class="notification-shade-overlay"
@@ -330,6 +348,34 @@ function handleLaunchApp(appName: string) {
 
 .spacer {
   flex: 1;
+}
+
+.home-niagara-strip {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 10px 4px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  user-select: none;
+  transition: all 0.2s ease;
+  z-index: 25;
+}
+
+.home-niagara-strip:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--accent);
+  border-color: var(--accent);
 }
 
 /* Notification Shade Styles */

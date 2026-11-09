@@ -6,6 +6,7 @@ import type { AppInfo } from '../types'
 
 const props = defineProps<{
   isOpen: boolean
+  initialLetter?: string | null
 }>()
 
 const emit = defineEmits<{
@@ -14,6 +15,8 @@ const emit = defineEmits<{
 }>()
 
 const searchQuery = ref('')
+const activeWaveLetter = ref<string | null>(null)
+const isWaveDragging = ref(false)
 
 const defaultApps: AppInfo[] = [
   { packageName: 'browser', label: 'Браузер', tag: 'CH' },
@@ -46,6 +49,14 @@ const filteredApps = computed(() => {
   return defaultApps.filter(a => a.label.toLowerCase().includes(q))
 })
 
+const alphabet = computed(() => {
+  const set = new Set<string>()
+  for (const app of filteredApps.value) {
+    set.add(app.label.charAt(0).toUpperCase())
+  }
+  return Array.from(set).sort()
+})
+
 const activeMode = computed(() => ModesService.getActiveMode())
 
 function onInput() {
@@ -72,6 +83,35 @@ function close() {
   ZenAudio.back()
   emit('close')
 }
+
+function scrollToLetter(letter: string) {
+  if (activeWaveLetter.value !== letter) {
+    activeWaveLetter.value = letter
+    ZenAudio.tick()
+  }
+  const el = document.getElementById('letter-' + letter)
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+}
+
+function onWaveTouchMove(e: TouchEvent) {
+  if (e.touches.length === 0) return
+  isWaveDragging.value = true
+  const touch = e.touches[0]
+  const target = document.elementFromPoint(touch.clientX, touch.clientY)
+  if (target && target.getAttribute('data-letter')) {
+    const letter = target.getAttribute('data-letter')!
+    scrollToLetter(letter)
+  }
+}
+
+function onWaveTouchEnd() {
+  isWaveDragging.value = false
+  setTimeout(() => {
+    activeWaveLetter.value = null
+  }, 400)
+}
 </script>
 
 <template>
@@ -84,7 +124,7 @@ function close() {
       <input
         v-model="searchQuery"
         type="text"
-        placeholder="Поиск приложений..."
+        placeholder="Поиск приложений (Niagara Waterfall)..."
         @input="onInput"
       />
       <span v-if="searchQuery" class="clear-btn" @click="searchQuery = ''">✕</span>
@@ -92,29 +132,66 @@ function close() {
 
     <!-- Header info -->
     <div class="drawer-info">
-      <span>ВСЕ ПРИЛОЖЕНИЯ ({{ filteredApps.length }})</span>
+      <span>ВОДОПАД ПРИЛОЖЕНИЙ ({{ filteredApps.length }})</span>
       <span class="mode-tag">РЕЖИМ: {{ activeMode.name.toUpperCase() }}</span>
     </div>
 
-    <!-- Apps scroll list -->
-    <div class="apps-list">
+    <!-- Apps Waterfall with Niagara Wave Alphabet Strip -->
+    <div class="drawer-body">
+      <!-- Apps scroll list -->
+      <div class="apps-list">
+        <template v-for="(app, idx) in filteredApps" :key="app.packageName">
+          <!-- Letter header divider if starting new letter -->
+          <div
+            v-if="idx === 0 || app.label.charAt(0).toUpperCase() !== filteredApps[idx - 1].label.charAt(0).toUpperCase()"
+            :id="'letter-' + app.label.charAt(0).toUpperCase()"
+            class="letter-section-header"
+          >
+            {{ app.label.charAt(0).toUpperCase() }}
+          </div>
+
+          <div
+            class="drawer-item bounce-tap"
+            @click="onAppClick(app)"
+          >
+            <div class="app-icon-mono">{{ app.tag }}</div>
+            <div class="app-label">{{ app.label }}</div>
+            <div
+              class="pin-btn"
+              :class="{ pinned: isPinned(app) }"
+              @click="togglePin(app, $event)"
+              title="Закрепить в текущем режиме"
+            >
+              {{ isPinned(app) ? '★' : '☆' }}
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <!-- Niagara Wave Alphabet Slider -->
       <div
-        v-for="app in filteredApps"
-        :key="app.packageName"
-        class="drawer-item bounce-tap"
-        @click="onAppClick(app)"
+        v-if="alphabet.length > 2 && !searchQuery"
+        class="niagara-alphabet-slider"
+        @touchmove.prevent="onWaveTouchMove"
+        @touchend="onWaveTouchEnd"
       >
-        <div class="app-icon-mono">{{ app.tag }}</div>
-        <div class="app-label">{{ app.label }}</div>
         <div
-          class="pin-btn"
-          :class="{ pinned: isPinned(app) }"
-          @click="togglePin(app, $event)"
-          title="Закрепить в текущем режиме"
+          v-for="char in alphabet"
+          :key="char"
+          class="alphabet-char"
+          :class="{ active: activeWaveLetter === char }"
+          :data-letter="char"
+          @mouseenter="scrollToLetter(char)"
+          @click="scrollToLetter(char)"
         >
-          {{ isPinned(app) ? '★' : '☆' }}
+          {{ char }}
         </div>
       </div>
+    </div>
+
+    <!-- Floating Niagara Large Letter Bubble -->
+    <div v-if="activeWaveLetter" class="floating-letter-bubble">
+      <span>{{ activeWaveLetter }}</span>
     </div>
 
     <div class="home-indicator" @click="close"></div>
@@ -128,14 +205,14 @@ function close() {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.96);
+  background: rgba(0, 0, 0, 0.97);
   backdrop-filter: blur(24px);
   z-index: 50;
   display: flex;
   flex-direction: column;
   transform: translateY(100%);
   transition: transform 0.38s var(--spring-physics);
-  padding: 16px 20px;
+  padding: 16px 14px 16px 20px;
 }
 
 .app-drawer.open {
@@ -160,6 +237,7 @@ function close() {
   align-items: center;
   gap: 10px;
   margin-bottom: 12px;
+  margin-right: 6px;
 }
 
 .search-box input {
@@ -167,7 +245,7 @@ function close() {
   border: none;
   outline: none;
   color: var(--text-main);
-  font-size: 15px;
+  font-size: 14px;
   font-family: var(--font-sans);
   width: 100%;
 }
@@ -191,10 +269,18 @@ function close() {
   letter-spacing: 1.5px;
   color: var(--text-muted);
   margin-bottom: 8px;
+  margin-right: 6px;
 }
 
 .mode-tag {
   color: var(--accent);
+}
+
+.drawer-body {
+  flex: 1;
+  display: flex;
+  position: relative;
+  overflow: hidden;
 }
 
 .apps-list {
@@ -202,26 +288,36 @@ function close() {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding-right: 4px;
+  gap: 4px;
+  padding-right: 8px;
 }
 
 .apps-list::-webkit-scrollbar {
-  width: 3px;
+  width: 0;
+  display: none;
 }
 
-.apps-list::-webkit-scrollbar-thumb {
-  background: #2a2a30;
-  border-radius: 2px;
+.letter-section-header {
+  font-family: var(--font-mono);
+  font-weight: bold;
+  font-size: 11px;
+  color: var(--accent);
+  padding: 8px 12px 2px 12px;
+  letter-spacing: 2px;
 }
 
 .drawer-item {
   display: flex;
   align-items: center;
-  padding: 9px 12px;
+  padding: 8px 12px;
   border-radius: 12px;
   cursor: pointer;
   gap: 12px;
+  transition: background 0.15s ease;
+}
+
+.drawer-item:hover {
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .app-icon-mono {
@@ -255,6 +351,64 @@ function close() {
 
 .pin-btn.pinned {
   color: var(--accent);
+}
+
+/* Niagara Wave Alphabet Slider */
+.niagara-alphabet-slider {
+  width: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+  touch-action: none;
+  padding: 6px 0;
+  cursor: pointer;
+}
+
+.alphabet-char {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-muted);
+  width: 100%;
+  text-align: center;
+  transition: all 0.15s ease;
+  padding: 1px 0;
+}
+
+.alphabet-char.active {
+  color: var(--accent);
+  font-weight: bold;
+  transform: translateX(-12px) scale(1.4);
+}
+
+/* Floating Letter Bubble */
+.floating-letter-bubble {
+  position: absolute;
+  top: 50%;
+  right: 50px;
+  transform: translateY(-50%);
+  width: 64px;
+  height: 64px;
+  background: #000;
+  border: 1.5px solid var(--accent);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 28px;
+  font-weight: bold;
+  color: var(--text-main);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+  animation: popLetter 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 60;
+}
+
+@keyframes popLetter {
+  from { opacity: 0; transform: translateY(-50%) scale(0.7); }
+  to { opacity: 1; transform: translateY(-50%) scale(1); }
 }
 
 .home-indicator {

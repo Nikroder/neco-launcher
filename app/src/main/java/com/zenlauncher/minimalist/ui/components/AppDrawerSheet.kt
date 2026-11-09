@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -44,6 +45,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -86,15 +88,18 @@ fun AppDrawerSheet(
     soundEngine: ZenSoundEngine,
     onAppClick: (AppInfo) -> Unit,
     onToggleFavorite: (AppInfo) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    initialScrollLetter: String? = null
 ) {
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusRequester = remember { FocusRequester() }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val coroutineScope = rememberCoroutineScope()
+    val listState = rememberLazyListState()
 
     var searchQuery by remember { mutableStateOf("") }
+    var selectedLetter by remember { mutableStateOf(initialScrollLetter) }
 
     val filteredApps = remember(searchQuery, allApps) {
         if (searchQuery.isBlank()) {
@@ -102,6 +107,23 @@ fun AppDrawerSheet(
         } else {
             val q = searchQuery.trim().lowercase()
             allApps.filter { it.label.lowercase().contains(q) }
+        }
+    }
+
+    val availableLetters = remember(filteredApps) {
+        val distinct = filteredApps
+            .map { it.label.take(1).uppercase() }
+            .distinct()
+            .sorted()
+        if (distinct.isEmpty()) listOf("A") else distinct
+    }
+
+    LaunchedEffect(initialScrollLetter, filteredApps) {
+        if (!initialScrollLetter.isNullOrBlank()) {
+            val idx = filteredApps.indexOfFirst { it.label.startsWith(initialScrollLetter, ignoreCase = true) }
+            if (idx != -1) {
+                listState.scrollToItem(idx)
+            }
         }
     }
 
@@ -254,132 +276,154 @@ fun AppDrawerSheet(
                     )
                 }
             } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    items(filteredApps, key = { it.packageName }) { app ->
-                        var itemMenuExpanded by remember { mutableStateOf(false) }
+                Row(modifier = Modifier.fillMaxSize()) {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        items(filteredApps, key = { it.packageName }) { app ->
+                            var itemMenuExpanded by remember { mutableStateOf(false) }
 
-                        Box {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .combinedClickable(
-                                        onClick = {
-                                            soundEngine.playOpen()
-                                            onAppClick(app)
-                                        },
-                                        onLongClick = {
-                                            soundEngine.playTap()
-                                            itemMenuExpanded = true
-                                        }
-                                    )
-                                    .padding(horizontal = 12.dp, vertical = 10.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                // App Icon
-                                if (app.icon != null) {
-                                    val bitmap = remember(app.packageName) {
-                                        app.icon.toBitmap(width = 84, height = 84, config = Bitmap.Config.ARGB_8888)
-                                    }
-                                    Image(
-                                        bitmap = bitmap.asImageBitmap(),
-                                        contentDescription = app.label,
-                                        modifier = Modifier
-                                            .size(36.dp)
-                                            .clip(CircleShape)
-                                    )
-                                } else {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(36.dp)
-                                            .clip(CircleShape)
-                                            .background(CardSurface),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(
-                                            text = app.label.take(1).uppercase(),
-                                            fontFamily = FontFamily.Monospace,
-                                            fontWeight = FontWeight.Bold,
-                                            color = TextSecondary
+                            Box {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .combinedClickable(
+                                            onClick = {
+                                                soundEngine.playOpen()
+                                                onAppClick(app)
+                                            },
+                                            onLongClick = {
+                                                soundEngine.playTap()
+                                                itemMenuExpanded = true
+                                            }
                                         )
-                                    }
-                                }
-
-                                Spacer(modifier = Modifier.width(14.dp))
-
-                                // Label
-                                Text(
-                                    text = app.label,
-                                    fontFamily = FontFamily.SansSerif,
-                                    fontSize = 15.sp,
-                                    color = TextPrimary,
-                                    modifier = Modifier.weight(1f)
-                                )
-
-                                // Favorite Toggle Indicator
-                                IconButton(
-                                    onClick = {
-                                        soundEngine.playTap()
-                                        onToggleFavorite(app)
-                                    },
-                                    modifier = Modifier.size(32.dp)
+                                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Icon(
-                                        imageVector = if (app.isFavorite) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder,
-                                        contentDescription = "Pin to favorites",
-                                        tint = if (app.isFavorite) NothingRed else TextMuted,
-                                        modifier = Modifier.size(18.dp)
+                                    // App Icon
+                                    if (app.icon != null) {
+                                        val bitmap = remember(app.packageName) {
+                                            app.icon.toBitmap(width = 84, height = 84, config = Bitmap.Config.ARGB_8888)
+                                        }
+                                        Image(
+                                            bitmap = bitmap.asImageBitmap(),
+                                            contentDescription = app.label,
+                                            modifier = Modifier
+                                                .size(36.dp)
+                                                .clip(CircleShape)
+                                        )
+                                    } else {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(36.dp)
+                                                .clip(CircleShape)
+                                                .background(CardSurface),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = app.label.take(1).uppercase(),
+                                                fontFamily = FontFamily.Monospace,
+                                                fontWeight = FontWeight.Bold,
+                                                color = TextSecondary
+                                            )
+                                        }
+                                    }
+
+                                    Spacer(modifier = Modifier.width(14.dp))
+
+                                    // Label
+                                    Text(
+                                        text = app.label,
+                                        fontFamily = FontFamily.SansSerif,
+                                        fontSize = 15.sp,
+                                        color = TextPrimary,
+                                        modifier = Modifier.weight(1f)
+                                    )
+
+                                    // Favorite Toggle Indicator
+                                    IconButton(
+                                        onClick = {
+                                            soundEngine.playTap()
+                                            onToggleFavorite(app)
+                                        },
+                                        modifier = Modifier.size(32.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = if (app.isFavorite) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder,
+                                            contentDescription = "Pin to favorites",
+                                            tint = if (app.isFavorite) NothingRed else TextMuted,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                }
+
+                                DropdownMenu(
+                                    expanded = itemMenuExpanded,
+                                    onDismissRequest = {
+                                        soundEngine.playBack()
+                                        itemMenuExpanded = false
+                                    },
+                                    modifier = Modifier.background(DarkSurface)
+                                ) {
+                                    DropdownMenuItem(
+                                        text = {
+                                            Text(
+                                                if (app.isFavorite) "Убрать из «${activeMode.name}»" else "Закрепить в «${activeMode.name}»",
+                                                color = TextPrimary
+                                            )
+                                        },
+                                        leadingIcon = {
+                                            Icon(
+                                                if (app.isFavorite) Icons.Outlined.FavoriteBorder else Icons.Outlined.Favorite,
+                                                contentDescription = null,
+                                                tint = NothingRed
+                                            )
+                                        },
+                                        onClick = {
+                                            soundEngine.playTap()
+                                            itemMenuExpanded = false
+                                            onToggleFavorite(app)
+                                        }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text("О приложении", color = TextPrimary) },
+                                        leadingIcon = {
+                                            Icon(Icons.Outlined.Info, contentDescription = null, tint = TextSecondary)
+                                        },
+                                        onClick = {
+                                            soundEngine.playTap()
+                                            itemMenuExpanded = false
+                                            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                                data = Uri.fromParts("package", app.packageName, null)
+                                            }
+                                            context.startActivity(intent)
+                                        }
                                     )
                                 }
-                            }
-
-                            DropdownMenu(
-                                expanded = itemMenuExpanded,
-                                onDismissRequest = {
-                                    soundEngine.playBack()
-                                    itemMenuExpanded = false
-                                },
-                                modifier = Modifier.background(DarkSurface)
-                            ) {
-                                DropdownMenuItem(
-                                    text = {
-                                        Text(
-                                            if (app.isFavorite) "Убрать из «${activeMode.name}»" else "Закрепить в «${activeMode.name}»",
-                                            color = TextPrimary
-                                        )
-                                    },
-                                    leadingIcon = {
-                                        Icon(
-                                            if (app.isFavorite) Icons.Outlined.FavoriteBorder else Icons.Outlined.Favorite,
-                                            contentDescription = null,
-                                            tint = NothingRed
-                                        )
-                                    },
-                                    onClick = {
-                                        soundEngine.playTap()
-                                        itemMenuExpanded = false
-                                        onToggleFavorite(app)
-                                    }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text("О приложении", color = TextPrimary) },
-                                    leadingIcon = {
-                                        Icon(Icons.Outlined.Info, contentDescription = null, tint = TextSecondary)
-                                    },
-                                    onClick = {
-                                        soundEngine.playTap()
-                                        itemMenuExpanded = false
-                                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                                            data = Uri.fromParts("package", app.packageName, null)
-                                        }
-                                        context.startActivity(intent)
-                                    }
-                                )
                             }
                         }
+                    }
+
+                    if (availableLetters.size > 1 && searchQuery.isEmpty()) {
+                        NiagaraWaveScrollbar(
+                            letters = availableLetters,
+                            selectedLetter = selectedLetter,
+                            onLetterSelected = { letter ->
+                                selectedLetter = letter
+                                val idx = filteredApps.indexOfFirst { it.label.startsWith(letter, ignoreCase = true) }
+                                if (idx != -1) {
+                                    soundEngine.playTick()
+                                    coroutineScope.launch {
+                                        listState.scrollToItem(idx)
+                                    }
+                                }
+                            }
+                        )
                     }
                 }
             }
