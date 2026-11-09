@@ -1,0 +1,9 @@
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="surface_dark">#FF121212</color>
+    <color name="surface_variant">#FF1E1E1E</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="text_secondary">#8AFFFFFF</color>
+    <color name="text_muted">#4DFFFFFF</color>
+    <color name="accent_red">#FFE53935</color>
+</resources>

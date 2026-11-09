@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Zen Launcher — Заряд устройств & Плавные анимации</title>
+  <style>
+    :root {
+      --bg: #000000;
+      --surface: #0e0e10;
+      --card: #151518;
+      --border: #232328;
+      --text-main: #f5f5f7;
+      --text-sub: #8e8e93;
+      --text-muted: #48484a;
+      --accent: #d71920;
+      --font-mono: 'Space Mono', 'Consolas', monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      --spring-physics: cubic-bezier(0.16, 1, 0.3, 1);
+      --bounce-physics: cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: #08080a;
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      overflow-x: hidden;
+    }
+
+    /* Top Sound & Feature Bar */
+    .sound-bar {
+      margin-bottom: 14px;
+      background: rgba(21, 21, 24, 0.9);
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      padding: 8px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+
+    .sound-bar span {
+      color: var(--text-sub);
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 1px;
+    }
+
+    .sound-btn {
+      background: #202025;
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      padding: 5px 12px;
+      border-radius: 16px;
+      cursor: pointer;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      transition: all 0.2s var(--bounce-physics);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .sound-btn:hover {
+      background: #2a2a30;
+      border-color: #404048;
+    }
+
+    .sound-btn:active {
+      transform: scale(0.92);
+      background: var(--accent);
+      color: #fff;
+    }
+
+    /* Phone Shell */
+    .phone-container {
+      width: 380px;
+      height: 790px;
+      background-color: var(--bg);
+      border-radius: 46px;
+      border: 6px solid #202022;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 0 1px #333338;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Status Bar */
+    .phone-status-bar {
+      height: 38px;
+      padding: 0 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      color: var(--text-sub);
+      z-index: 10;
+    }
+
+    .status-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    /* Main Screen Content */
+    .screen-content {
+      flex: 1;
+      padding: 8px 22px 14px 22px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* Clock & Date Widget */
+    .widget-clock {
+      cursor: pointer;
+      padding: 4px 0;
+      transition: transform 0.25s var(--bounce-physics);
+    }
+
+    .widget-clock:active {
+      transform: scale(0.98);
+    }
+
+    .os-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .os-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+
+    .os-title {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      color: var(--text-muted);
+    }
+
+    .clock-digits {
+      font-family: var(--font-mono);
+      font-size: 64px;
+      font-weight: 300;
+      letter-spacing: -3px;
+      line-height: 1;
+      color: var(--text-main);
+    }
+
+    .date-label {
+      font-family: var(--font-sans);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-sub);
+      margin-top: 5px;
+    }
+
+    /* Expandable Battery & Connected Devices Widget */
+    .widget-battery-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 10px 14px;
+      margin-top: 8px;
+      cursor: pointer;
+      transition: all 0.35s var(--spring-physics);
+      overflow: hidden;
+    }
+
+    .widget-battery-card:hover {
+      border-color: #2e2e36;
+    }
+
+    .battery-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .battery-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 1px;
+      color: var(--text-sub);
+    }
+
+    .battery-dev-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--accent);
+      font-weight: bold;
+      background: rgba(215, 25, 32, 0.12);
+      padding: 2px 6px;
+      border-radius: 8px;
+    }
+
+    .battery-dots {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .b-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #2c2c30;
+      transition: background 0.3s;
+    }
+
+    .b-dot.active {
+      background: var(--text-main);
+    }
+
+    .battery-percent {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-main);
+      margin-left: 8px;
+    }
+
+    .caret-icon {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-left: 6px;
+      transition: transform 0.35s var(--spring-physics);
+      display: inline-block;
+    }
+
+    .widget-battery-card.expanded .caret-icon {
+      transform: rotate(180deg);
+    }
+
+    /* Expanded Devices Tray */
+    .connected-devices-tray {
+      max-height: 0;
+      opacity: 0;
+      transform: translateY(-8px);
+      transition: max-height 0.38s var(--spring-physics), opacity 0.28s ease, transform 0.35s var(--spring-physics);
+      pointer-events: none;
+    }
+
+    .widget-battery-card.expanded .connected-devices-tray {
+      max-height: 220px;
+      opacity: 1;
+      transform: translateY(0);
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+      pointer-events: auto;
+    }
+
+    .device-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 2px;
+      font-size: 12px;
+    }
+
+    .device-row-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-main);
+      font-size: 13px;
+    }
+
+    .device-icon {
+      font-size: 14px;
+      color: var(--text-sub);
+    }
+
+    /* Media Player Widget */
+    .widget-media {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 9px 14px;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      transition: all 0.25s var(--spring-physics);
+    }
+
+    .media-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      cursor: pointer;
+      overflow: hidden;
+    }
+
+    .media-disc {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #0e0e12;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .media-pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      transition: all 0.3s;
+    }
+
+    .playing .media-pulse-dot {
+      box-shadow: 0 0 10px var(--accent);
+      animation: pulse 1.4s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(0.9); opacity: 0.7; }
+      50% { transform: scale(1.3); opacity: 1; }
+    }
+
+    .media-info {
+      flex: 1;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    .media-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-main);
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .media-artist {
+      font-size: 11px;
+      color: var(--text-sub);
+      text-overflow: ellipsis;
+      overflow: hidden;
+      margin-top: 2px;
+    }
+
+    .media-controls {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .media-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-sub);
+      cursor: pointer;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: 13px;
+      transition: transform 0.2s var(--bounce-physics);
+    }
+
+    .media-btn.play-pause {
+      background: #0e0e12;
+      color: var(--text-main);
+      width: 32px;
+      height: 32px;
+    }
+
+    .media-btn:active {
+      transform: scale(0.88);
+      color: var(--accent);
+    }
+
+    /* Spacer */
+    .flex-spacer {
+      flex: 1;
+    }
+
+    /* Mode Selector Row (Samsung Modes & Routines) */
+    .mode-selector-wrap {
+      margin-bottom: 8px;
+    }
+
+    .mode-row {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+    .mode-row::-webkit-scrollbar {
+      display: none;
+    }
+
+    .mode-pill {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 18px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      transition: all 0.22s var(--spring-physics);
+    }
+
+    .mode-pill.active {
+      background: var(--card);
+      color: var(--text-main);
+      font-weight: 600;
+      border-color: #383840;
+    }
+
+    .mode-pill.active::before {
+      content: '';
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .mode-pill:active {
+      transform: scale(0.93);
+    }
+
+    /* Favorites List with Staggered Transition */
+    .favorites-header {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      margin-bottom: 7px;
+      display: flex;
+      justify-content: space-between;
+      transition: color 0.3s;
+    }
+
+    .favorites-list {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .fav-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 11px 15px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: transform 0.24s var(--bounce-physics), background 0.2s ease, opacity 0.3s ease;
+      animation: favSlideIn 0.3s var(--spring-physics) both;
+    }
+
+    @keyframes favSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .fav-item:active {
+      transform: scale(0.96);
+      background: #202025;
+      border-color: #383840;
+    }
+
+    .fav-item-left {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+    }
+
+    .fav-index {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+    }
+
+    .fav-name {
+      font-size: 15px;
+      color: var(--text-main);
+      font-weight: 400;
+      letter-spacing: 0.3px;
+    }
+
+    .fav-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--border);
+    }
+
+    /* Launcher Actions Footer */
+    .launcher-footer {
+      margin-top: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .btn-all-apps {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 7px 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 1.2px;
+      color: var(--text-sub);
+      transition: transform 0.22s var(--bounce-physics), background 0.15s;
+    }
+
+    .btn-all-apps:active {
+      background: #25252b;
+      transform: scale(0.93);
+    }
+
+    .btn-all-apps span.red-dots {
+      color: var(--accent);
+      font-weight: bold;
+      letter-spacing: 2px;
+    }
+
+    .btn-settings {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 8px 10px;
+      border-radius: 12px;
+      transition: color 0.15s, transform 0.2s var(--bounce-physics);
+    }
+
+    .btn-settings:active {
+      transform: scale(0.93);
+      color: var(--text-main);
+    }
+
+    /* Bottom Navigation indicator */
+    .home-pill {
+      width: 110px;
+      height: 4px;
+      background: #2d2d32;
+      border-radius: 2px;
+      margin: 6px auto 5px auto;
+    }
+
+    /* App Drawer Modal */
+    .app-drawer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      backdrop-filter: blur(20px);
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      transform: translateY(100%);
+      transition: transform 0.38s var(--spring-physics);
+      padding: 16px 20px;
+    }
+
+    .app-drawer.open {
+      transform: translateY(0);
+    }
+
+    .drawer-handle-bar {
+      width: 36px;
+      height: 4px;
+      background: #2d2d32;
+      border-radius: 2px;
+      margin: 4px auto 14px auto;
+      cursor: pointer;
+    }
+
+    .search-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .search-box input {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-main);
+      font-size: 15px;
+      font-family: var(--font-sans);
+      width: 100%;
+    }
+
+    .search-box input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .drawer-scroll-list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding-right: 4px;
+    }
+
+    .drawer-scroll-list::-webkit-scrollbar {
+      width: 3px;
+    }
+    .drawer-scroll-list::-webkit-scrollbar-thumb {
+      background: #2a2a30;
+      border-radius: 2px;
+    }
+
+    .drawer-item {
+      display: flex;
+      align-items: center;
+      padding: 9px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      gap: 12px;
+      transition: transform 0.2s var(--bounce-physics), background 0.15s;
+    }
+
+    .drawer-item:active {
+      background: #18181c;
+      transform: scale(0.97);
+    }
+
+    .app-icon-mono {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #161619;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 12px;
+      color: var(--text-sub);
+    }
+
+    .app-label {
+      font-size: 15px;
+      color: var(--text-main);
+    }
+
+    /* Notification Toast */
+    .toast {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(50px);
+      background: #1f1f24;
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      font-size: 12px;
+      font-family: var(--font-mono);
+      padding: 8px 16px;
+      border-radius: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s var(--spring-physics);
+      z-index: 100;
+      white-space: nowrap;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top sound preview tester -->
+  <div class="sound-bar">
+    <span>Zen Audio</span>
+    <button class="sound-btn" onclick="ZenAudio.tap()">💧 Tap</button>
+    <button class="sound-btn" onclick="ZenAudio.open()">🔔 Open</button>
+    <button class="sound-btn" onclick="ZenAudio.drawer()">🌊 Drawer</button>
+    <button class="sound-btn" onclick="ZenAudio.back()">🍃 Back</button>
+    <button class="sound-btn" onclick="ZenAudio.tick()">⚡ Tick</button>
+  </div>
+
+  <!-- Mobile Screen -->
+  <div class="phone-container">
+    
+    <!-- Status Bar -->
+    <div class="phone-status-bar">
+      <div class="status-left">
+        <span id="status-clock">20:49</span>
+      </div>
+      <div class="status-right">
+        <div class="status-dot"></div>
+        <span>5G</span>
+        <span id="status-battery-num">87%</span>
+      </div>
+    </div>
+
+    <!-- Main Screen Content -->
+    <div class="screen-content">
+      
+      <!-- Clock Widget -->
+      <div class="widget-clock" onclick="ZenAudio.tap(); showToast('Будильник & Время');">
+        <div class="os-badge">
+          <div class="os-dot"></div>
+          <div class="os-title">ZEN // OS</div>
+        </div>
+        <div class="clock-digits" id="main-clock">20:49</div>
+        <div class="date-label" id="main-date">ПОНЕДЕЛЬНИК, 9 НОЯБРЯ</div>
+      </div>
+
+      <!-- Expandable Battery & Connected Devices Widget -->
+      <div class="widget-battery-card" id="battery-card" onclick="toggleBatteryCard()">
+        <div class="battery-header">
+          <div class="battery-left">
+            <div class="os-dot" style="width:6px;height:6px;"></div>
+            <span>BATTERY</span>
+            <span class="battery-dev-badge">+3 DEV</span>
+          </div>
+          <div style="display:flex; align-items:center;">
+            <div class="battery-dots">
+              <div class="b-dot active"></div>
+              <div class="b-dot active"></div>
+              <div class="b-dot active"></div>
+              <div class="b-dot active"></div>
+              <div class="b-dot"></div>
+            </div>
+            <span class="battery-percent">87%</span>
+            <span class="caret-icon">▾</span>
+          </div>
+        </div>
+
+        <!-- Smoothly unfolded tray of connected devices -->
+        <div class="connected-devices-tray">
+          <div style="font-family:var(--font-mono); font-size:10px; letter-spacing:1.5px; color:var(--text-muted); margin-bottom:8px;">
+            ПОДКЛЮЧЕННЫЕ УСТРОЙСТВА
+          </div>
+
+          <!-- Phone -->
+          <div class="device-row">
+            <div class="device-row-left">
+              <span class="device-icon">📱</span>
+              <span>Galaxy S24 Ultra</span>
+            </div>
+            <div style="display:flex; align-items:center;">
+              <div class="battery-dots">
+                <div class="b-dot active"></div><div class="b-dot active"></div><div class="b-dot active"></div><div class="b-dot active"></div><div class="b-dot"></div>
+              </div>
+              <span class="battery-percent">87%</span>
+            </div>
+          </div>
+
+          <!-- Galaxy Buds -->
+          <div class="device-row">
+            <div class="device-row-left">
+              <span class="device-icon">🎧</span>
+              <span>Galaxy Buds2 Pro</span>
+            </div>
+            <div style="display:flex; align-items:center;">
+              <div class="battery-dots">
+                <div class="b-dot active"></div><div class="b-dot active"></div><div class="b-dot active"></div><div class="b-dot active"></div><div class="b-dot active"></div>
+              </div>
+              <span class="battery-percent">92%</span>
+            </div>
+          </div>
+
+          <!-- Galaxy Watch -->
+          <div class="device-row">
+            <div class="device-row-left">
+              <span class="device-icon">⌚</span>
+              <span>Galaxy Watch6</span>
+            </div>
+            <div style="display:flex; align-items:center;">
+              <div class="battery-dots">
+                <div class="b-dot active"></div><div class="b-dot active"></div><div class="b-dot active"></div><div class="b-dot"></div><div class="b-dot"></div>
+              </div>
+              <span class="battery-percent">65%</span>
+            </div>
+          </div>
+
+          <!-- S Pen -->
+          <div class="device-row">
+            <div class="device-row-left">
+              <span class="device-icon">✏️</span>
+              <span>S Pen</span>
+            </div>
+            <div style="display:flex; align-items:center;">
+              <div class="battery-dots">
+                <div class="b-dot active"></div><div class="b-dot active"></div><div class="b-dot active"></div><div class="b-dot active"></div><div class="b-dot active"></div>
+              </div>
+              <span class="battery-percent">100%</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Media Player Widget (Minimalist Nothing OS Style) -->
+      <div class="widget-media playing" id="media-player">
+        <div class="media-left" onclick="ZenAudio.tap(); showToast('Открытие плеера: Spotify');">
+          <div class="media-disc">
+            <div class="media-pulse-dot"></div>
+          </div>
+          <div class="media-info">
+            <div class="media-title" id="media-track-title">Ambient Serenity</div>
+            <div class="media-artist" id="media-track-artist">Solar Fields • Spotify</div>
+          </div>
+        </div>
+
+        <div class="media-controls">
+          <button class="media-btn" onclick="prevTrack()" title="Предыдущий">⏮</button>
+          <button class="media-btn play-pause" id="play-pause-btn" onclick="togglePlayPause()" title="Пауза / Плей">⏸</button>
+          <button class="media-btn" onclick="nextTrack()" title="Следующий">⏭</button>
+        </div>
+      </div>
+
+      <div class="flex-spacer"></div>
+
+      <!-- Samsung Modes & Routines Selector Row -->
+      <div class="mode-selector-wrap">
+        <div class="mode-row" id="modes-container">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+
+      <!-- Favorites List (Dependent on Samsung Mode) -->
+      <div class="favorites-header">
+        <span id="favs-mode-title">ИЗБРАННЫЕ // ОБЫЧНЫЙ</span>
+        <span id="favs-counter">06 / 06</span>
+      </div>
+
+      <div class="favorites-list" id="favs-list">
+        <!-- Rendered via JS based on current mode -->
+      </div>
+
+      <!-- Footer Action -->
+      <div class="launcher-footer">
+        <div class="btn-all-apps" onclick="openDrawer()">
+          <span class="red-dots">•••</span>
+          <span>ВСЕ ПРИЛОЖЕНИЯ</span>
+        </div>
+        <div class="btn-settings" onclick="ZenAudio.tap(); showToast('Настройки лаунчера');">
+          ZEN // PREFS
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Home indicator -->
+    <div class="home-pill"></div>
+
+    <!-- App Drawer Sheet -->
+    <div class="app-drawer" id="app-drawer">
+      <div class="drawer-handle-bar" onclick="closeDrawer()"></div>
+
+      <div class="search-box">
+        <span style="color:var(--text-sub); font-size:14px;">🔍</span>
+        <input type="text" id="app-search" placeholder="Поиск приложений..." oninput="onSearchInput(this.value)">
+      </div>
+
+      <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:11px; letter-spacing:1.5px; color:var(--text-muted); margin-bottom:8px;">
+        <span>ВСЕ ПРИЛОЖЕНИЯ (<span id="apps-count">16</span>)</span>
+        <span id="drawer-active-mode" style="color:var(--accent);">РЕЖИМ: ОБЫЧНЫЙ</span>
+      </div>
+
+      <div class="drawer-scroll-list" id="apps-list">
+        <!-- Rendered via JS -->
+      </div>
+
+      <div class="home-pill" style="margin-top:10px;" onclick="closeDrawer()"></div>
+    </div>
+
+    <!-- Floating Toast -->
+    <div class="toast" id="toast">Запуск...</div>
+
+  </div>
+
+  <script>
+    // --- Zen Audio Synthesizer (Web Audio API) ---
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+
+    function getAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new AudioContextClass();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    const ZenAudio = {
+      tap() {
+        const ctx = getAudioContext();
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523.25, now);
+
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(0.35, now + 0.003);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.09);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.1);
+        vibrate(8);
+      },
+
+      open() {
+        const ctx = getAudioContext();
+        const now = ctx.currentTime;
+
+        const osc1 = ctx.createOscillator();
+        const gain1 = ctx.createGain();
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(698.46, now);
+        gain1.gain.setValueAtTime(0, now);
+        gain1.gain.linearRampToValueAtTime(0.28, now + 0.004);
+        gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+        osc1.connect(gain1);
+        gain1.connect(ctx.destination);
+        osc1.start(now);
+        osc1.stop(now + 0.19);
+
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(880.0, now + 0.045);
+        gain2.gain.setValueAtTime(0, now + 0.045);
+        gain2.gain.linearRampToValueAtTime(0.32, now + 0.05);
+        gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.start(now + 0.045);
+        osc2.stop(now + 0.23);
+        vibrate(15);
+      },
+
+      drawer() {
+        const ctx = getAudioContext();
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(293.66, now);
+
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(0.2, now + 0.08);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.2);
+        vibrate(10);
+      },
+
+      back() {
+        const ctx = getAudioContext();
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440.0, now);
+        osc.frequency.exponentialRampToValueAtTime(329.63, now + 0.14);
+
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(0.25, now + 0.004);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.15);
+        vibrate(6);
+      },
+
+      tick() {
+        const ctx = getAudioContext();
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880.0, now);
+
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(0.18, now + 0.002);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.035);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.04);
+        vibrate(4);
+      }
+    };
+
+    function vibrate(ms) {
+      if (navigator.vibrate) {
+        navigator.vibrate(ms);
+      }
+    }
+
+    // --- Battery Card Expansion ---
+    function toggleBatteryCard() {
+      ZenAudio.tap();
+      const card = document.getElementById('battery-card');
+      card.classList.toggle('expanded');
+    }
+
+    // --- Media Player State ---
+    const tracks = [
+      { title: "Ambient Serenity", artist: "Solar Fields • Spotify" },
+      { title: "Weightless", artist: "Marconi Union • YouTube Music" },
+      { title: "Deep Focus Echoes", artist: "Brian Eno • Я.Музыка" }
+    ];
+    let currentTrackIdx = 0;
+    let isPlaying = true;
+
+    function updateMediaUI() {
+      const track = tracks[currentTrackIdx];
+      document.getElementById('media-track-title').textContent = track.title;
+      document.getElementById('media-track-artist').textContent = track.artist;
+      const playBtn = document.getElementById('play-pause-btn');
+      const playerCard = document.getElementById('media-player');
+
+      if (isPlaying) {
+        playBtn.textContent = '⏸';
+        playerCard.classList.add('playing');
+      } else {
+        playBtn.textContent = '▶';
+        playerCard.classList.remove('playing');
+      }
+    }
+
+    function togglePlayPause() {
+      ZenAudio.tap();
+      isPlaying = !isPlaying;
+      updateMediaUI();
+      showToast(isPlaying ? 'Возобновлено' : 'Пауза');
+    }
+
+    function nextTrack() {
+      ZenAudio.tick();
+      currentTrackIdx = (currentTrackIdx + 1) % tracks.length;
+      isPlaying = true;
+      updateMediaUI();
+      showToast('След: ' + tracks[currentTrackIdx].title);
+    }
+
+    function prevTrack() {
+      ZenAudio.tick();
+      currentTrackIdx = (currentTrackIdx - 1 + tracks.length) % tracks.length;
+      isPlaying = true;
+      updateMediaUI();
+      showToast('Пред: ' + tracks[currentTrackIdx].title);
+    }
+
+    // --- Samsung Modes & Favorites ---
+    const modesData = [
+      {
+        id: 'default',
+        name: 'Обычный',
+        favorites: ['Телефон', 'Telegram', 'Браузер', 'Камера', 'Заметки', 'Музыка']
+      },
+      {
+        id: 'work',
+        name: 'Работа',
+        favorites: ['Slack', 'Gmail', 'Календарь', 'Zoom', 'Заметки', 'Файлы']
+      },
+      {
+        id: 'relax',
+        name: 'Отдых',
+        favorites: ['YouTube', 'Spotify', 'Книги', 'Кинопоиск', 'Telegram', 'Игры']
+      },
+      {
+        id: 'sleep',
+        name: 'Сон',
+        favorites: ['Часы', 'Будильник', 'Звуки сна', 'Заметки']
+      },
+      {
+        id: 'sport',
+        name: 'Спорт',
+        favorites: ['Strava', 'Тренировки', 'Музыка', 'Шагомер', 'Таймер']
+      }
+    ];
+
+    let currentModeId = 'default';
+
+    function renderModes() {
+      const container = document.getElementById('modes-container');
+      container.innerHTML = '';
+
+      modesData.forEach(m => {
+        const pill = document.createElement('div');
+        pill.className = 'mode-pill' + (m.id === currentModeId ? ' active' : '');
+        pill.textContent = m.name.toUpperCase();
+        pill.onclick = () => {
+          ZenAudio.tap();
+          currentModeId = m.id;
+          renderModes();
+          renderFavorites();
+          document.getElementById('drawer-active-mode').textContent = 'РЕЖИМ: ' + m.name.toUpperCase();
+          showToast('Режим Samsung: ' + m.name);
+        };
+        container.appendChild(pill);
+      });
+    }
+
+    function renderFavorites() {
+      const mode = modesData.find(m => m.id === currentModeId);
+      const favsList = document.getElementById('favs-list');
+      favsList.innerHTML = '';
+
+      document.getElementById('favs-mode-title').textContent = 'ИЗБРАННЫЕ // ' + mode.name.toUpperCase();
+      document.getElementById('favs-counter').textContent = String(mode.favorites.length).padStart(2, '0') + ' / 06';
+
+      mode.favorites.forEach((favName, index) => {
+        const item = document.createElement('div');
+        item.className = 'fav-item';
+        item.style.animationDelay = `${index * 0.04}s`;
+        item.onclick = () => {
+          ZenAudio.open();
+          showToast('Запуск: ' + favName);
+        };
+
+        const idxStr = String(index + 1).padStart(2, '0');
+        item.innerHTML = `
+          <div class="fav-item-left">
+            <span class="fav-index">${idxStr}</span>
+            <span class="fav-name">${favName}</span>
+          </div>
+          <div class="fav-dot"></div>
+        `;
+        favsList.appendChild(item);
+      });
+    }
+
+    renderModes();
+    renderFavorites();
+
+    // --- Clock and Date Update ---
+    const daysRu = ['ВОСКРЕСЕНЬЕ', 'ПОНЕДЕЛЬНИК', 'ВТОРНИК', 'СРЕДА', 'ЧЕТВЕРГ', 'ПЯТНИЦА', 'СУББОТА'];
+    const monthsRu = ['ЯНВАРЯ', 'ФЕВРАЛЯ', 'МАРТА', 'АПРЕЛЯ', 'МАЯ', 'ИЮНЯ', 'ИЮЛЯ', 'АВГУСТА', 'СЕНТЯБРЯ', 'ОКТЯБРЯ', 'НОЯБРЯ', 'ДЕКАБРЯ'];
+
+    function updateClock() {
+      const now = new Date();
+      const h = String(now.getHours()).padStart(2, '0');
+      const m = String(now.getMinutes()).padStart(2, '0');
+      const timeStr = `${h}:${m}`;
+      
+      document.getElementById('status-clock').textContent = timeStr;
+      document.getElementById('main-clock').textContent = timeStr;
+
+      const dayName = daysRu[now.getDay()];
+      const dayNum = now.getDate();
+      const monthName = monthsRu[now.getMonth()];
+      document.getElementById('main-date').textContent = `${dayName}, ${dayNum} ${monthName}`;
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // --- Sample Apps Data ---
+    const installedApps = [
+      { name: 'Браузер', tag: 'CH' },
+      { name: 'Будильник', tag: 'AL' },
+      { name: 'Галерея', tag: 'GL' },
+      { name: 'Диктофон', tag: 'RC' },
+      { name: 'Заметки', tag: 'NT' },
+      { name: 'Калькулятор', tag: 'CL' },
+      { name: 'Календарь', tag: 'CD' },
+      { name: 'Камера', tag: 'CM' },
+      { name: 'Контакты', tag: 'CT' },
+      { name: 'Музыка', tag: 'MS' },
+      { name: 'Настройки', tag: 'ST' },
+      { name: 'Погода', tag: 'WT' },
+      { name: 'Сообщения', tag: 'MS' },
+      { name: 'Телефон', tag: 'PH' },
+      { name: 'Файлы', tag: 'FL' },
+      { name: 'Часы', tag: 'CK' },
+      { name: 'Gmail', tag: 'GM' },
+      { name: 'Slack', tag: 'SL' },
+      { name: 'Spotify', tag: 'SP' },
+      { name: 'Strava', tag: 'ST' },
+      { name: 'Telegram', tag: 'TG' },
+      { name: 'YouTube', tag: 'YT' },
+      { name: 'Zoom', tag: 'ZM' }
+    ];
+
+    function renderApps(list) {
+      const container = document.getElementById('apps-list');
+      container.innerHTML = '';
+      document.getElementById('apps-count').textContent = list.length;
+
+      list.forEach(app => {
+        const item = document.createElement('div');
+        item.className = 'drawer-item';
+        item.onclick = () => {
+          ZenAudio.open();
+          showToast('Запуск: ' + app.name);
+          closeDrawer();
+        };
+
+        item.innerHTML = `
+          <div class="app-icon-mono">${app.tag}</div>
+          <div class="app-label">${app.name}</div>
+        `;
+        container.appendChild(item);
+      });
+    }
+    renderApps(installedApps);
+
+    function onSearchInput(query) {
+      ZenAudio.tick();
+      const q = query.trim().toLowerCase();
+      const filtered = installedApps.filter(a => a.name.toLowerCase().includes(q));
+      renderApps(filtered);
+    }
+
+    // --- Drawer open / close ---
+    function openDrawer() {
+      ZenAudio.drawer();
+      document.getElementById('app-drawer').classList.add('open');
+      document.getElementById('app-search').focus();
+    }
+
+    function closeDrawer() {
+      ZenAudio.back();
+      document.getElementById('app-drawer').classList.remove('open');
+      document.getElementById('app-search').value = '';
+      renderApps(installedApps);
+    }
+
+    // --- Toast helper ---
+    let toastTimeout = null;
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 1800);
+    }
+  </script>
+</body>
+</html>
