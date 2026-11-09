@@ -1,7 +1,7 @@
 import type { UpdateInfo } from '../types'
 
 const DEFAULT_REPO = 'Nikroder/neco-launcher'
-const CURRENT_VERSION = '1.0.5'
+const CURRENT_VERSION = '1.0.6'
 
 export class GitHubUpdaterService {
   private repoKey = 'zen_github_repo'

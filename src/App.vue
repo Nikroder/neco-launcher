@@ -348,6 +348,7 @@ function handleLaunchApp(appName: string) {
 
 .spacer {
   flex: 1;
+  min-height: 32px;
 }
 
 .home-niagara-strip {

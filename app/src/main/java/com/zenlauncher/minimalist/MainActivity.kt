@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -359,12 +360,12 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 24.dp)
-                .padding(top = 16.dp, bottom = 12.dp)
+                .padding(top = 10.dp, bottom = 8.dp)
         ) {
             // Clock & Date Widget
             ClockWidget(soundEngine = soundEngine)
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
             // Expandable Connected Devices & Battery Widget
             BatteryWidget(
@@ -375,14 +376,19 @@ fun HomeScreen(
 
             // Minimalist Media Player Widget (dynamically visible when music is playing)
             if (mediaTrackState != null) {
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 MediaPlayerWidget(
                     trackState = mediaTrackState,
                     soundEngine = soundEngine
                 )
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            // Guaranteed breathing room: NEVER shrinks below 36.dp!
+            Spacer(
+                modifier = Modifier
+                    .weight(1f)
+                    .heightIn(min = 36.dp)
+            )
 
             // Samsung Modes & Routines Switcher Row
             ModeSelectorRow(
@@ -398,7 +404,7 @@ fun HomeScreen(
                 }
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             // Favorites List for current mode with fluid spring transitions
             FavoritesList(
@@ -411,7 +417,7 @@ fun HomeScreen(
                 onOpenSettings = { isSettingsOpen = true }
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp))
         }
 
         // Niagara Alphabet Wave Slider on Home Screen

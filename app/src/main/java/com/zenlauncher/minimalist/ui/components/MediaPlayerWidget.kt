@@ -77,7 +77,7 @@ fun MediaPlayerWidget(
                     soundEngine.playTap()
                     MediaManager.openApp(context)
                 }
-                .padding(horizontal = 14.dp, vertical = 10.dp),
+                .padding(horizontal = 14.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Album Art or Animated Equalizer Dot
@@ -86,13 +86,13 @@ fun MediaPlayerWidget(
                     bitmap = trackState.albumArt.asImageBitmap(),
                     contentDescription = null,
                     modifier = Modifier
-                        .size(42.dp)
+                        .size(38.dp)
                         .clip(RoundedCornerShape(8.dp))
                 )
             } else {
                 Box(
                     modifier = Modifier
-                        .size(42.dp)
+                        .size(38.dp)
                         .clip(CircleShape)
                         .background(com.zenlauncher.minimalist.ui.theme.DarkSurface),
                     contentAlignment = Alignment.Center

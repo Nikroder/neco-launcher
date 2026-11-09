@@ -78,7 +78,7 @@ fun ClockWidget(
                     clockIntent?.let { context.startActivity(it) }
                 }
             }
-            .padding(vertical = 12.dp)
+            .padding(vertical = 4.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically
@@ -91,7 +91,7 @@ fun ClockWidget(
             ) {}
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "ZEN // OS",
+                text = "N.ECO // OS",
                 fontSize = 11.sp,
                 fontFamily = FontFamily.Monospace,
                 fontWeight = FontWeight.Bold,
@@ -100,14 +100,14 @@ fun ClockWidget(
             )
         }
 
-        Spacer(modifier = Modifier.height(6.dp))
+        Spacer(modifier = Modifier.height(3.dp))
 
         Text(
             text = formattedTime,
-            fontSize = 72.sp,
+            fontSize = 58.sp,
             fontFamily = FontFamily.Monospace,
             fontWeight = FontWeight.Light,
-            letterSpacing = (-3).sp,
+            letterSpacing = (-2).sp,
             color = TextPrimary
         )
 
@@ -115,10 +115,10 @@ fun ClockWidget(
 
         Text(
             text = formattedDate,
-            fontSize = 13.sp,
+            fontSize = 12.5.sp,
             fontFamily = FontFamily.SansSerif,
             fontWeight = FontWeight.SemiBold,
-            letterSpacing = 1.5.sp,
+            letterSpacing = 1.3.sp,
             color = TextSecondary
         )
     }

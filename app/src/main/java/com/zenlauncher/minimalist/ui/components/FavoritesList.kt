@@ -76,7 +76,7 @@ fun FavoritesList(
 
     Column(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         // Mode Header Indicator
         Row(
@@ -111,7 +111,7 @@ fun FavoritesList(
         ) { currentFavorites ->
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 if (currentFavorites.isEmpty()) {
                     Box(
@@ -153,26 +153,26 @@ fun FavoritesList(
                                             menuExpanded = true
                                         }
                                     )
-                                    .padding(horizontal = 16.dp, vertical = 13.dp),
+                                    .padding(horizontal = 14.dp, vertical = 9.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
                                     text = String.format("%02d", index + 1),
                                     fontFamily = FontFamily.Monospace,
                                     fontWeight = FontWeight.SemiBold,
-                                    fontSize = 12.sp,
+                                    fontSize = 11.5.sp,
                                     letterSpacing = 1.sp,
                                     color = TextMuted
                                 )
 
-                                Spacer(modifier = Modifier.width(14.dp))
+                                Spacer(modifier = Modifier.width(12.dp))
 
                                 Text(
                                     text = app.label,
                                     fontFamily = FontFamily.SansSerif,
                                     fontWeight = FontWeight.Normal,
-                                    fontSize = 16.sp,
-                                    letterSpacing = 0.3.sp,
+                                    fontSize = 15.sp,
+                                    letterSpacing = 0.2.sp,
                                     color = TextPrimary,
                                     modifier = Modifier.weight(1f)
                                 )
