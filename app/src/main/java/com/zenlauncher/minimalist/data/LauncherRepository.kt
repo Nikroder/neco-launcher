@@ -66,41 +66,45 @@ class LauncherRepository(
     }
 
     suspend fun loadApps() = withContext(Dispatchers.IO) {
-        val mainIntent = Intent(Intent.ACTION_MAIN, null).apply {
-            addCategory(Intent.CATEGORY_LAUNCHER)
-        }
-        val resolvedActivities: List<ResolveInfo> = packageManager.queryIntentActivities(mainIntent, 0)
-        val currentPackageName = context.packageName
-
-        val currentActiveModeId = modesRepository.activeMode.value.id
-        var modeFavorites = modesRepository.getFavoritesForMode(currentActiveModeId)
-
-        if (modeFavorites.isEmpty() && currentActiveModeId == "default") {
-            modeFavorites = getInitialDefaultSuggestions()
-            modesRepository.setFavoritesForMode(currentActiveModeId, modeFavorites)
-        }
-
-        val appList = resolvedActivities
-            .filter { it.activityInfo.packageName != currentPackageName }
-            .map { info ->
-                val label = info.loadLabel(packageManager).toString()
-                val rawIcon = info.loadIcon(packageManager)
-                val icon = if (isMonochromeIcons) toMonochromeDrawable(rawIcon) else rawIcon
-                val pkgName = info.activityInfo.packageName
-                val actName = info.activityInfo.name
-
-                AppInfo(
-                    packageName = pkgName,
-                    activityName = actName,
-                    label = label,
-                    icon = icon,
-                    isFavorite = modeFavorites.contains(pkgName)
-                )
+        try {
+            val mainIntent = Intent(Intent.ACTION_MAIN, null).apply {
+                addCategory(Intent.CATEGORY_LAUNCHER)
             }
-            .sortedBy { it.label.lowercase() }
+            val resolvedActivities: List<ResolveInfo> = packageManager.queryIntentActivities(mainIntent, 0)
+            val currentPackageName = context.packageName
 
-        _allApps.value = appList
-        updateFavoritesListForCurrentMode()
+            val currentActiveModeId = modesRepository.activeMode.value.id
+            var modeFavorites = modesRepository.getFavoritesForMode(currentActiveModeId)
+
+            if (modeFavorites.isEmpty() && currentActiveModeId == "default") {
+                modeFavorites = getInitialDefaultSuggestions()
+                modesRepository.setFavoritesForMode(currentActiveModeId, modeFavorites)
+            }
+
+            val appList = resolvedActivities
+                .filter { it.activityInfo.packageName != currentPackageName }
+                .map { info ->
+                    val label = try { info.loadLabel(packageManager).toString() } catch (e: Throwable) { info.activityInfo.packageName }
+                    val rawIcon = try { info.loadIcon(packageManager) } catch (e: Throwable) { null }
+                    val icon = if (isMonochromeIcons && rawIcon != null) toMonochromeDrawable(rawIcon) else rawIcon
+                    val pkgName = info.activityInfo.packageName
+                    val actName = info.activityInfo.name
+
+                    AppInfo(
+                        packageName = pkgName,
+                        activityName = actName,
+                        label = label,
+                        icon = icon,
+                        isFavorite = modeFavorites.contains(pkgName)
+                    )
+                }
+                .sortedBy { it.label.lowercase() }
+
+            _allApps.value = appList
+            updateFavoritesListForCurrentMode()
+        } catch (e: Throwable) {
+            android.util.Log.e("LauncherRepository", "Error loading apps", e)
+        }
     }
 
     fun updateFavoritesListForCurrentMode() {
@@ -120,31 +124,35 @@ class LauncherRepository(
     }
 
     private fun toMonochromeDrawable(drawable: Drawable): Drawable {
-        val width = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth else 96
-        val height = if (drawable.intrinsicHeight > 0) drawable.intrinsicHeight else 96
+        return try {
+            val width = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth else 96
+            val height = if (drawable.intrinsicHeight > 0) drawable.intrinsicHeight else 96
 
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        drawable.setBounds(0, 0, canvas.width, canvas.height)
+            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(bitmap)
+            drawable.setBounds(0, 0, canvas.width, canvas.height)
 
-        val paint = Paint().apply {
-            val cm = ColorMatrix()
-            cm.setSaturation(0f)
-            val scale = 1.15f
-            val translate = (-0.15f * 128f)
-            val contrastMatrix = floatArrayOf(
-                scale, 0f, 0f, 0f, translate,
-                0f, scale, 0f, 0f, translate,
-                0f, 0f, scale, 0f, translate,
-                0f, 0f, 0f, 1f, 0f
-            )
-            cm.postConcat(ColorMatrix(contrastMatrix))
-            colorFilter = ColorMatrixColorFilter(cm)
+            val paint = Paint().apply {
+                val cm = ColorMatrix()
+                cm.setSaturation(0f)
+                val scale = 1.15f
+                val translate = (-0.15f * 128f)
+                val contrastMatrix = floatArrayOf(
+                    scale, 0f, 0f, 0f, translate,
+                    0f, scale, 0f, 0f, translate,
+                    0f, 0f, scale, 0f, translate,
+                    0f, 0f, 0f, 1f, 0f
+                )
+                cm.postConcat(ColorMatrix(contrastMatrix))
+                colorFilter = ColorMatrixColorFilter(cm)
+            }
+            canvas.saveLayer(null, paint)
+            drawable.draw(canvas)
+            canvas.restore()
+
+            BitmapDrawable(context.resources, bitmap)
+        } catch (e: Throwable) {
+            drawable
         }
-        canvas.saveLayer(null, paint)
-        drawable.draw(canvas)
-        canvas.restore()
-
-        return BitmapDrawable(context.resources, bitmap)
     }
 }

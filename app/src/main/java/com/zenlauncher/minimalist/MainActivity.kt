@@ -71,17 +71,25 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        try {
+            enableEdgeToEdge()
+        } catch (e: Throwable) {
+            android.util.Log.w("MainActivity", "EdgeToEdge fallback", e)
+        }
 
-        soundEngine = ZenSoundEngine(this)
-        modesRepository = ModesRepository(this)
-        repository = LauncherRepository(this, modesRepository)
-        devicesManager = ConnectedDevicesManager(this)
+        try {
+            soundEngine = ZenSoundEngine(this)
+            modesRepository = ModesRepository(this)
+            repository = LauncherRepository(this, modesRepository)
+            devicesManager = ConnectedDevicesManager(this)
 
-        soundEngine.isSoundEnabled = repository.isSoundEnabled
-        soundEngine.isHapticsEnabled = repository.isHapticsEnabled
+            soundEngine.isSoundEnabled = repository.isSoundEnabled
+            soundEngine.isHapticsEnabled = repository.isHapticsEnabled
 
-        handleModeIntent(intent)
+            handleModeIntent(intent)
+        } catch (e: Throwable) {
+            android.util.Log.e("MainActivity", "Initialization error", e)
+        }
 
         setContent {
             ZenLauncherTheme {
@@ -98,7 +106,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        devicesManager.refreshConnectedBluetoothDevices()
+        if (::devicesManager.isInitialized) {
+            devicesManager.refreshConnectedBluetoothDevices()
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -110,8 +120,12 @@ class MainActivity : ComponentActivity() {
         if (intent == null) return
         val requestedMode = intent.getStringExtra("mode") ?: intent.getStringExtra("mode_id")
         if (!requestedMode.isNullOrBlank()) {
-            modesRepository.selectMode(requestedMode.lowercase())
-            repository.updateFavoritesListForCurrentMode()
+            if (::modesRepository.isInitialized) {
+                modesRepository.selectMode(requestedMode.lowercase())
+            }
+            if (::repository.isInitialized) {
+                repository.updateFavoritesListForCurrentMode()
+            }
             if (::soundEngine.isInitialized) {
                 soundEngine.playTap()
             }
@@ -120,8 +134,12 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        soundEngine.release()
-        devicesManager.unregister()
+        if (::soundEngine.isInitialized) {
+            soundEngine.release()
+        }
+        if (::devicesManager.isInitialized) {
+            devicesManager.unregister()
+        }
     }
 
     private fun launchApp(app: AppInfo) {

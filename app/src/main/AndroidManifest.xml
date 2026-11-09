@@ -34,11 +34,17 @@
             android:resumeWhilePausing="true"
             android:windowSoftInputMode="adjustPan">
             
-            <!-- Default Home Intent -->
+            <!-- Home Launcher Intent -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.HOME" />
                 <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+
+            <!-- Direct App Launcher Intent (enables 'Open' button after install & app drawer icon) -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
             <!-- Samsung Modes and Routines integration intent -->

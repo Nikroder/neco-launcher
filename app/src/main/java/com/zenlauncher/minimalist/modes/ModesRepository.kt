@@ -143,20 +143,30 @@ class ModesRepository(private val context: Context) {
     }
 
     private fun registerDndReceiver() {
-        val filter = IntentFilter(NotificationManager.ACTION_INTERRUPTION_FILTER_CHANGED)
-        context.registerReceiver(object : BroadcastReceiver() {
-            override fun onReceive(c: Context?, intent: Intent?) {
-                if (!isAutoDndSyncEnabled) return
-                val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager ?: return
-                val currentFilter = nm.currentInterruptionFilter
+        try {
+            val filter = IntentFilter(NotificationManager.ACTION_INTERRUPTION_FILTER_CHANGED)
+            val receiver = object : BroadcastReceiver() {
+                override fun onReceive(c: Context?, intent: Intent?) {
+                    if (!isAutoDndSyncEnabled) return
+                    val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager ?: return
+                    val currentFilter = nm.currentInterruptionFilter
 
-                // If Samsung DND / Sleep routine is enabled
-                if (currentFilter != NotificationManager.INTERRUPTION_FILTER_ALL) {
-                    if (_activeMode.value.id != LauncherMode.SLEEP.id) {
-                        selectMode(LauncherMode.SLEEP.id)
+                    // If Samsung DND / Sleep routine is enabled
+                    if (currentFilter != NotificationManager.INTERRUPTION_FILTER_ALL) {
+                        if (_activeMode.value.id != LauncherMode.SLEEP.id) {
+                            selectMode(LauncherMode.SLEEP.id)
+                        }
                     }
                 }
             }
-        }, filter)
+            androidx.core.content.ContextCompat.registerReceiver(
+                context,
+                receiver,
+                filter,
+                androidx.core.content.ContextCompat.RECEIVER_EXPORTED
+            )
+        } catch (e: Throwable) {
+            android.util.Log.w("ModesRepository", "Failed to register DND receiver", e)
+        }
     }
 }
