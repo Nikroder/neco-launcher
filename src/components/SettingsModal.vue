@@ -71,7 +71,7 @@ function close() {
       <div class="card-box">
         <label class="field-label">GitHub репозиторий (owner/repo):</label>
         <div class="input-row">
-          <input v-model="repoInput" type="text" placeholder="username/neco-launcher" />
+          <input v-model="repoInput" type="text" placeholder="Nikroder/neco-launcher" />
           <button class="action-btn bounce-tap" @click="onSaveRepo">OK</button>
         </div>
 

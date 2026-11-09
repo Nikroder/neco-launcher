@@ -28,7 +28,7 @@
 1. Создайте новый пустой репозиторий на [GitHub](https://github.com/new) (например, `neco-launcher`).
 2. В терминале выполните:
 ```bash
-git remote add origin https://github.com/<ВАШ_GITHUB_ЛОГИН>/neco-launcher.git
+git remote add origin https://github.com/Nikroder/neco-launcher.git
 git push -u origin main
 ```
 
